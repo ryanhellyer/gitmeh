@@ -2,37 +2,49 @@
 
 **AI-powered git commits for the terminally lazy.**
 
-**gitmeh** is a high-speed shortcut for your personal garbage repositories. It is designed specifically for those projects where quality does not matter and the only thing you care about is closing the laptop as fast as humanly possible.
+**gitmeh** is a high-speed shortcut for your personal garbage repositories. It is designed specifically for those projects where quality is a myth and your only real goal is closing the laptop before you have to think about your life choices.
 
-> **⚠️ WARNING:** Using this on a professional team project is a great way to get a stern talking-to from a Senior Dev. This tool is reckless, indifferent, and definitely not "enterprise-ready."
+> **⚠️ WARNING:** Using this on a professional team project is a "Get Fired" speedrun tactic. This tool is reckless, indifferent, and definitely not "enterprise-ready." It’s barely "human-ready."
+
+---
 
 ### Why use this?
 
-Because writing thoughtful commit messages for your 14th unfinished side project is a waste of your precious nap time.
+Because writing thoughtful commit messages for your 14th abandoned side project is a waste of precious nap time. Let a robot lie about your progress instead.
 
-* **Nuclear Staging:** It runs `git add --all` without asking. It stages your unfinished thoughts, your secrets, and that one large `test.mp4` you forgot was there.
-* **AI Guesswork:** It begs Google’s Gemini to explain what you did because you have already forgotten.
-* **Automatic Pushing:** Shovels your changes directly to the cloud so you can stop looking at the terminal.
-* **Built-in Judgement:** Features 40+ randomized status messages that mock your lack of professional standards.
+* **Nuclear Staging:** It runs `git add --all` like a maniac. It stages your unfinished thoughts, your API keys, and that 2GB `video.mp4` you accidentally downloaded to your root folder.
+* **AI Guesswork:** It begs Google’s Gemini to hallucinate a description of your code because you’ve already checked out mentally.
+* **Automatic Pushing:** Shovels your mess directly to the cloud so you can pretend it’s "done."
+* **Built-in Judgment:** Features 40+ randomized status messages that openly mock your lack of professional standards and basic work ethic.
+
+---
 
 ### Quick Start
 
-1. **Get a Gemini API Key** from [Google AI Studio](https://aistudio.google.com/).
-2. **Dump it in your shell config** (`~/.bashrc` or `~/.zshrc`):
+1. **Beg Google for an API Key** at [Google AI Studio](https://aistudio.google.com/).
+2. **Litter your shell config** (`~/.bashrc` or `~/.zshrc`) with more environment variables:
 `export GEMINI_API_KEY='your_key_here'`
-3. **Install the thing globally** so you can run it from anywhere without that annoying `.sh` extension:
+3. **Force-install the thing** so you can run it without typing those two extra characters for the extension:
 ```bash
 mv gitmeh.sh gitmeh
 chmod +x gitmeh
 sudo mv gitmeh /usr/local/bin/
+
 ```
+
+
+
+---
 
 ### Requirements
 
-* `git`: duh!
-* `jq`: to handle the robot's feelings.
-* `curl`: to send the SOS signal to Google.
+* `git`: If you don't have this, why are you even here?
+* `jq`: To parse the robot's existential dread.
+* `curl`: To scream into the void (Google's servers).
+
+---
 
 ### Author
 
-**Ryan Hellyer** [ryan.hellyer.kiwi](https://ryan.hellyer.kiwi) | [GitHub Repo](https://github.com/ryanhellyer/gitmeh)
+**Ryan Hellyer** (A man who clearly values his time more than your code quality)
+[ryan.hellyer.kiwi](https://ryan.hellyer.kiwi) | [GitHub Repo](https://github.com/ryanhellyer/gitmeh)
