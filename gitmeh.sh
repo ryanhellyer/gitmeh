@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # gitmeh: AI-powered git commits for the terminally lazy.
 # Author: Ryan Hellyer <ryan@hellyer.kiwi>
@@ -155,8 +155,11 @@ USER_INPUT=${USER_INPUT:-y}
 case "$USER_INPUT" in
     [yY][eE][sS]|[yY]) 
         git commit -m "$COMMIT_MSG"
-        git push origin "$BRANCH"
-        echo -e "${CYAN}$(get_random "${SUCCESS_PHRASES[@]}")${NC}"
+        if git push origin "$BRANCH"; then
+            echo -e "${CYAN}$(get_random "${SUCCESS_PHRASES[@]}")${NC}"
+        else
+            echo -e "${YELLOW}Push failed. You actually have to do some work now (git pull).${NC}"
+        fi
         ;;
     [eE][dD][iI][tT]|[eE])
         read -p "Fine, fix it yourself: " MANUAL_MSG

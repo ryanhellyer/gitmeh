@@ -23,10 +23,17 @@ Because writing thoughtful commit messages for your 14th unfinished side project
 2. **Dump it in your shell config** (`~/.bashrc` or `~/.zshrc`):
 `export GEMINI_API_KEY='your_key_here'`
 3. **Install the thing globally** so you can run it from anywhere without that annoying `.sh` extension:
+
+macOS / Linux:
 ```bash
-mv gitmeh.sh gitmeh
-chmod +x gitmeh
-sudo mv gitmeh /usr/local/bin/
+chmod +x gitmeh.sh && sudo mv gitmeh.sh /usr/local/bin/gitmeh
+```
+
+Windows (Git Bash - _totally untested as I don't use Windows_):
+```bash
+mkdir -p ~/bin
+cp gitmeh.sh ~/bin/gitmeh
+# Ensure ~/bin is in your PATH
 ```
 
 ### Requirements
