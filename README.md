@@ -4,7 +4,7 @@
 
 **gitmeh** is a high-speed shortcut for your personal garbage repositories. It is designed specifically for those projects where quality does not matter and the only thing you care about is closing the laptop as fast as humanly possible.
 
-> **⚠️ WARNING:** Using this on a professional team project is a great way to get a stern talking-to from a Senior Dev. This tool is reckless, indifferent, and definitely not "enterprise-ready."
+> **⚠️ WARNING:** Using this on a professional team project is a great way to get a stern talking-to from your engineering manager. This tool is reckless, indifferent, and definitely not "enterprise-ready."
 
 ![gitmeh in action](images/screenshot.avif)
 
