@@ -7,7 +7,7 @@
 
 # Configuration
 API_KEY="${OPENROUTER_API_KEY:-$GEMINI_API_KEY}"
-MODEL="${OPENROUTER_MODEL:-google/gemini-2.5-flash}"
+MODEL="${OPENROUTER_MODEL:-google/gemma-3-4b-it}"
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 MAX_TOTAL_CHARS=10000
 CHARS_PER_FILE=800
@@ -88,7 +88,7 @@ if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
     echo "Setup: Store your OpenRouter API key in your shell config (~/.bashrc, ~/.zshrc, or ~/.profile):"
     echo "export OPENROUTER_API_KEY='your_key_here'"
     echo ""
-    echo "Optional: Set OPENROUTER_MODEL (default: google/gemini-2.5-flash). See https://openrouter.ai/models"
+    echo "Optional: Set OPENROUTER_MODEL (default: google/gemma-3-4b-it). See https://openrouter.ai/models"
     echo "Optional: Set GITMEH_PROMPT to customize the instruction sent to the AI (the diff is always appended)."
     echo ""
     echo "Author: Ryan Hellyer (https://ryan.hellyer.kiwi)"
