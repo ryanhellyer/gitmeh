@@ -48,6 +48,7 @@ cp gitmeh.sh ~/bin/gitmeh
 
 ### Changelog
 
+* `2.0.1`: Set default model to Google Gemma 3 4B as it is free
 * `2.0`: Conversion to use OpenRouter API and implementing ability to change model used and prompt
 * `1.0`: Initial implementation using Google Gemini
 
