@@ -6,8 +6,8 @@
 # GitHub: https://github.com/ryanhellyer/gitmeh
 
 # Configuration
-API_KEY="$GEMINI_API_KEY"
-MODEL="gemini-2.0-flash"
+API_KEY="${OPENROUTER_API_KEY:-$GEMINI_API_KEY}"
+MODEL="${OPENROUTER_MODEL:-google/gemini-2.5-flash}"
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 MAX_TOTAL_CHARS=10000
 CHARS_PER_FILE=800
@@ -54,7 +54,7 @@ THINKING_PHRASES=(
     "Begging the AI to explain your own code back to you..."
     "Outsourcing your last two brain cells to the cloud..."
     "Waiting for the robot to find a nice way to say 'you broke it'..."
-    "Requesting a miracle from the Gemini API..."
+    "Requesting a miracle from the OpenRouter API..."
     "Pinging the mothership for a crumb of inspiration..."
     "Asking the AI to cover for you. Again."
 )
@@ -85,8 +85,11 @@ if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
     echo -e "${CYAN}$(get_random "${INTRO_PHRASES[@]}")${NC}"
     echo "Usage: gitmeh"
     echo ""
-    echo "Setup: Store your Gemini API key in your shell config file (~/.bashrc, ~/.zshrc, or ~/.profile):"
-    echo "export GEMINI_API_KEY='your_key_here'"
+    echo "Setup: Store your OpenRouter API key in your shell config (~/.bashrc, ~/.zshrc, or ~/.profile):"
+    echo "export OPENROUTER_API_KEY='your_key_here'"
+    echo ""
+    echo "Optional: Set OPENROUTER_MODEL (default: google/gemini-2.5-flash). See https://openrouter.ai/models"
+    echo "Optional: Set GITMEH_PROMPT to customize the instruction sent to the AI (the diff is always appended)."
     echo ""
     echo "Author: Ryan Hellyer (https://ryan.hellyer.kiwi)"
     exit 0
@@ -94,8 +97,8 @@ fi
 
 # Check API Key
 if [ -z "$API_KEY" ]; then
-    echo -e "${YELLOW}Error: GEMINI_API_KEY is missing.${NC}"
-    echo "Put it in ~/.bashrc or ~/.zshrc if you want this to actually work."
+    echo -e "${YELLOW}Error: OPENROUTER_API_KEY is missing.${NC}"
+    echo "Get a key at https://openrouter.ai/keys and put it in ~/.bashrc or ~/.zshrc."
     exit 1
 fi
 
@@ -130,18 +133,28 @@ done
 
 echo -e "\n$(get_random "${THINKING_PHRASES[@]}")"
 
-# Create JSON and send to LLM
-PROMPT="Write a short, professional git commit message for these changes. Use imperative mood. Only return the message text: $SMART_DIFF"
-JSON_PAYLOAD=$(jq -n --arg msg "$PROMPT" '{contents: [{parts: [{text: $msg}]}]}')
+# Create JSON and send to LLM via OpenRouter (diff is always appended)
+GITMEH_PROMPT_DEFAULT="Write a short, professional git commit message for these changes. Use imperative mood. Only return the message text:"
+PROMPT="${GITMEH_PROMPT:-$GITMEH_PROMPT_DEFAULT} $SMART_DIFF"
+JSON_PAYLOAD=$(jq -n --arg msg "$PROMPT" --arg model "$MODEL" '{model: $model, messages: [{role: "user", content: $msg}]}')
 
-RESPONSE=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=$API_KEY" \
+RESPONSE=$(curl -s -X POST "https://openrouter.ai/api/v1/chat/completions" \
     -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $API_KEY" \
     -d "$JSON_PAYLOAD")
 
-COMMIT_MSG=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text // empty' | xargs)
+# Check for OpenRouter/API error first
+API_ERR=$(echo "$RESPONSE" | jq -r '.error.message // .error // empty' 2>/dev/null)
+if [ -n "$API_ERR" ]; then
+    echo -e "${YELLOW}OpenRouter error: ${API_ERR}${NC}"
+    exit 1
+fi
+
+COMMIT_MSG=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // empty' 2>/dev/null | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | head -1)
 
 if [ -z "$COMMIT_MSG" ] || [ "$COMMIT_MSG" == "null" ]; then
     echo -e "${YELLOW}The AI failed. Probably went on a coffee break.${NC}"
+    echo "Response snippet: $(echo "$RESPONSE" | head -c 500)"
     exit 1
 fi
 

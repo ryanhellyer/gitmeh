@@ -13,15 +13,19 @@
 Because writing thoughtful commit messages for your 14th unfinished side project is a waste of your precious nap time.
 
 * **Nuclear Staging:** It runs `git add --all` without asking. It stages your unfinished thoughts, your secrets, and that one large `test.mp4` you forgot was there.
-* **AI Guesswork:** It begs Google’s Gemini to explain what you did because you have already forgotten.
+* **AI Guesswork:** It begs OpenRouter (any supported model) to explain what you did because you have already forgotten.
 * **Automatic Pushing:** Shovels your changes directly to the cloud so you can stop looking at the terminal.
 * **Built-in Judgement:** Features 40+ randomized status messages that mock your lack of professional standards.
 
 ### Quick Start
 
-1. **Get a Gemini API Key** from [Google AI Studio](https://aistudio.google.com/).
+1. **Get an OpenRouter API key** from [OpenRouter](https://openrouter.ai/keys).
 2. **Dump it in your shell config** (`~/.bashrc` or `~/.zshrc`):
-`export GEMINI_API_KEY='your_key_here'`
+   ```bash
+   export OPENROUTER_API_KEY='your_key_here'
+   ```
+   Optional: set `OPENROUTER_MODEL` (default: `google/gemini-2.5-flash`). See [openrouter.ai/models](https://openrouter.ai/models).  
+   Optional: set `GITMEH_PROMPT` to customize the instruction sent to the AI (the diff is always appended).
 3. **Install the thing globally** so you can run it from anywhere without that annoying `.sh` extension:
 
 macOS / Linux:
@@ -40,7 +44,7 @@ cp gitmeh.sh ~/bin/gitmeh
 
 * `git`: duh!
 * `jq`: to handle the robot's feelings.
-* `curl`: to send the SOS signal to Google.
+* `curl`: to send the SOS signal to OpenRouter.
 
 ### Author
 
