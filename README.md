@@ -46,6 +46,11 @@ cp gitmeh.sh ~/bin/gitmeh
 * `jq`: to handle the robot's feelings.
 * `curl`: to send the SOS signal to OpenRouter.
 
+### Changelog
+
+* `2.0`: Conversion to use OpenRouter API and implementing ability to change model used and prompt
+* `1.0`: Initial implementation using Google Gemini
+
 ### Author
 
 **Ryan Hellyer** [ryan.hellyer.kiwi](https://ryan.hellyer.kiwi) | [GitHub Repo](https://github.com/ryanhellyer/gitmeh)
