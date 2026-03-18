@@ -24,7 +24,7 @@ Because writing thoughtful commit messages for your 14th unfinished side project
    ```bash
    export OPENROUTER_API_KEY='your_key_here'
    ```
-   Optional: set `OPENROUTER_MODEL` (default: `google/gemini-2.5-flash`). See [openrouter.ai/models](https://openrouter.ai/models).  
+   Optional: set `OPENROUTER_MODEL` (default: `google/gemma-3-4b-it`). See [openrouter.ai/models](https://openrouter.ai/models).  
    Optional: set `GITMEH_PROMPT` to customize the instruction sent to the AI (the diff is always appended).
 3. **Install the thing globally** so you can run it from anywhere without that annoying `.sh` extension:
 
@@ -48,6 +48,7 @@ cp gitmeh.sh ~/bin/gitmeh
 
 ### Changelog
 
+* `2.0.2`: Fixing default model documentation
 * `2.0.1`: Set default model to Google Gemma 3 4B as it is free
 * `2.0`: Conversion to use OpenRouter API and implementing ability to change model used and prompt
 * `1.0`: Initial implementation using Google Gemini
