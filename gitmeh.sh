@@ -6,6 +6,8 @@
 # GitHub: https://github.com/ryanhellyer/gitmeh
 
 # Configuration
+# Default: POST plain-text diff to the free hosted API (no key). Override with OpenRouter by setting OPENROUTER_API_KEY.
+GITMEH_DEFAULT_URL="${GITMEH_DEFAULT_URL:-https://ai.hellyer.kiwi/gitmeh}"
 API_KEY="${OPENROUTER_API_KEY:-$GEMINI_API_KEY}"
 MODEL="${OPENROUTER_MODEL:-google/gemma-3-4b-it}"
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -54,7 +56,7 @@ THINKING_PHRASES=(
     "Begging the AI to explain your own code back to you..."
     "Outsourcing your last two brain cells to the cloud..."
     "Waiting for the robot to find a nice way to say 'you broke it'..."
-    "Requesting a miracle from the OpenRouter API..."
+    "Requesting a miracle from the API..."
     "Pinging the mothership for a crumb of inspiration..."
     "Asking the AI to cover for you. Again."
 )
@@ -85,26 +87,20 @@ if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
     echo -e "${CYAN}$(get_random "${INTRO_PHRASES[@]}")${NC}"
     echo "Usage: gitmeh"
     echo ""
-    echo "Setup: Store your OpenRouter API key in your shell config (~/.bashrc, ~/.zshrc, or ~/.profile):"
-    echo "export OPENROUTER_API_KEY='your_key_here'"
+    echo "By default this uses the free hosted API (no key). Optional: use your own OpenRouter account:"
+    echo "  export OPENROUTER_API_KEY='your_key_here'"
     echo ""
-    echo "Optional: Set OPENROUTER_MODEL (default: google/gemma-3-4b-it). See https://openrouter.ai/models"
-    echo "Optional: Set GITMEH_PROMPT to customize the instruction sent to the AI (the diff is always appended)."
+    echo "Optional (OpenRouter): OPENROUTER_MODEL (default: google/gemma-3-4b-it). See https://openrouter.ai/models"
+    echo "Optional (OpenRouter): GITMEH_PROMPT to customize the instruction (the diff is always appended)."
+    echo "Optional: GITMEH_DEFAULT_URL for a different keyless endpoint URL (default: https://ai.hellyer.kiwi/gitmeh)"
     echo ""
     echo "Author: Ryan Hellyer (https://ryan.hellyer.kiwi)"
     exit 0
 fi
 
-# Check API Key
-if [ -z "$API_KEY" ]; then
-    echo -e "${YELLOW}Error: OPENROUTER_API_KEY is missing.${NC}"
-    echo "Get a key at https://openrouter.ai/keys and put it in ~/.bashrc or ~/.zshrc."
-    exit 1
-fi
-
-# Check JQ
-if ! command -v jq &> /dev/null; then
-    echo "Error: 'jq' is missing. Go install it. Or don't. Whatever."
+# jq is only required when using OpenRouter (JSON responses)
+if [ -n "$API_KEY" ] && ! command -v jq &> /dev/null; then
+    echo "Error: 'jq' is missing. Install it, or unset OPENROUTER_API_KEY to use the keyless default API."
     exit 1
 fi
 
@@ -113,8 +109,6 @@ git add --all
 echo -e "${CYAN}$(get_random "${STAGING_PHRASES[@]}")${NC}"
 git status --short
 
-# Build diff
-SMART_DIFF=""
 FILES=$(git diff --cached --name-only)
 
 if [ -z "$FILES" ]; then
@@ -122,35 +116,52 @@ if [ -z "$FILES" ]; then
     exit 0
 fi
 
-for FILE in $FILES; do
-    if [ ${#SMART_DIFF} -gt $MAX_TOTAL_CHARS ]; then
-        SMART_DIFF+=$'\n' "... [Truncated because I'm bored] ..."
-        break
-    fi
-    FILE_DIFF=$(git diff --cached -- "$FILE" | head -c $CHARS_PER_FILE)
-    SMART_DIFF+=$'\n'"--- File: $FILE ---"$'\n'"$FILE_DIFF"$'\n'
-done
-
 echo -e "\n$(get_random "${THINKING_PHRASES[@]}")"
 
-# Create JSON and send to LLM via OpenRouter (diff is always appended)
-GITMEH_PROMPT_DEFAULT="Write a short, professional git commit message for these changes. Use imperative mood. Only return the message text:"
-PROMPT="${GITMEH_PROMPT:-$GITMEH_PROMPT_DEFAULT} $SMART_DIFF"
-JSON_PAYLOAD=$(jq -n --arg msg "$PROMPT" --arg model "$MODEL" '{model: $model, messages: [{role: "user", content: $msg}]}')
+if [ -n "$API_KEY" ]; then
+    # OpenRouter: chunked diff + JSON API
+    SMART_DIFF=""
+    for FILE in $FILES; do
+        if [ ${#SMART_DIFF} -gt $MAX_TOTAL_CHARS ]; then
+            SMART_DIFF+=$'\n' "... [Truncated because I'm bored] ..."
+            break
+        fi
+        FILE_DIFF=$(git diff --cached -- "$FILE" | head -c $CHARS_PER_FILE)
+        SMART_DIFF+=$'\n'"--- File: $FILE ---"$'\n'"$FILE_DIFF"$'\n'
+    done
 
-RESPONSE=$(curl -s -X POST "https://openrouter.ai/api/v1/chat/completions" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $API_KEY" \
-    -d "$JSON_PAYLOAD")
+    GITMEH_PROMPT_DEFAULT="Write a short, professional git commit message for these changes. Use imperative mood. Only return the message text:"
+    PROMPT="${GITMEH_PROMPT:-$GITMEH_PROMPT_DEFAULT} $SMART_DIFF"
+    JSON_PAYLOAD=$(jq -n --arg msg "$PROMPT" --arg model "$MODEL" '{model: $model, messages: [{role: "user", content: $msg}]}')
 
-# Check for OpenRouter/API error first
-API_ERR=$(echo "$RESPONSE" | jq -r '.error.message // .error // empty' 2>/dev/null)
-if [ -n "$API_ERR" ]; then
-    echo -e "${YELLOW}OpenRouter error: ${API_ERR}${NC}"
-    exit 1
+    RESPONSE=$(curl -sS -X POST "https://openrouter.ai/api/v1/chat/completions" \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer $API_KEY" \
+        -d "$JSON_PAYLOAD")
+
+    API_ERR=$(echo "$RESPONSE" | jq -r '.error.message // .error // empty' 2>/dev/null)
+    if [ -n "$API_ERR" ]; then
+        echo -e "${YELLOW}OpenRouter error: ${API_ERR}${NC}"
+        exit 1
+    fi
+
+    COMMIT_MSG=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // empty' 2>/dev/null | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | head -1)
+else
+    # Default: plain-text cached diff to hosted API (prompt is server-side)
+    DIFF_BODY=$(git diff --cached)
+    if [ ${#DIFF_BODY} -gt $MAX_TOTAL_CHARS ]; then
+        DIFF_BODY="${DIFF_BODY:0:$MAX_TOTAL_CHARS}"$'\n'"... [Truncated because I'm bored] ..."
+    fi
+
+    if ! RESPONSE=$(curl -sS -f -X POST "$GITMEH_DEFAULT_URL" \
+        -H "Content-Type: text/plain" \
+        --data-binary "$DIFF_BODY"); then
+        echo -e "${YELLOW}Request to default API failed (network or HTTP error). Set OPENROUTER_API_KEY to use OpenRouter instead.${NC}"
+        exit 1
+    fi
+
+    COMMIT_MSG=$(printf '%s' "$RESPONSE" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | head -1)
 fi
-
-COMMIT_MSG=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // empty' 2>/dev/null | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | head -1)
 
 if [ -z "$COMMIT_MSG" ] || [ "$COMMIT_MSG" == "null" ]; then
     echo -e "${YELLOW}The AI failed. Probably went on a coffee break.${NC}"
