@@ -56,3 +56,4 @@ cp gitmeh.sh ~/bin/gitmeh
 ### Author
 
 **Ryan Hellyer** [ryan.hellyer.kiwi](https://ryan.hellyer.kiwi) | [GitHub Repo](https://github.com/ryanhellyer/gitmeh)
+ 
