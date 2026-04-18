@@ -31,7 +31,7 @@ Because writing thoughtful commit messages for your 14th unfinished side project
 
 macOS / Linux:
 ```bash
-chmod +x gitmeh.sh && sudo mv gitmeh.sh /usr/local/bin/gitmeh
+bash install.sh
 ```
 
 Windows (Git Bash - _totally untested as I don't use Windows_):
