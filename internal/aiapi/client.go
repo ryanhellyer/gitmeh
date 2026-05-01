@@ -3,7 +3,6 @@ package aiapi
 import (
 	"bytes"
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,9 +12,9 @@ import (
 )
 
 // CommitMessage POSTs the unified diff as plain UTF-8 text and returns the
-// response body as the commit message. The API must respond with plain text
-// only (same idea as curl: one line like "Add … and document …", not JSON or
-// Markdown).
+// response body as the commit message (leading/trailing whitespace trimmed).
+// On non-2xx responses, the returned error includes the raw body as a quoted
+// string for debugging the API.
 func CommitMessage(diff string) (string, error) {
 	req, err := http.NewRequest("POST", config.GitMehURL, bytes.NewBufferString(diff))
 	if err != nil {
@@ -40,24 +39,11 @@ func CommitMessage(diff string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	body := strings.TrimSpace(string(bodyBytes))
+	raw := string(bodyBytes)
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		if body != "" {
-			return "", fmt.Errorf("%s: %s", resp.Status, body)
-		}
-		return "", fmt.Errorf("%s", resp.Status)
+		return "", fmt.Errorf("%s | raw body: %q", resp.Status, raw)
 	}
 
-	if ct := resp.Header.Get("Content-Type"); ct != "" {
-		if strings.Contains(strings.ToLower(ct), "application/json") {
-			return "", errors.New("API Content-Type is JSON; expected plain text")
-		}
-	}
-
-	if strings.HasPrefix(body, "```") {
-		return "", errors.New("API returned markdown fences; expected plain text only")
-	}
-
-	return body, nil
+	return strings.TrimSpace(raw), nil
 }
