@@ -2,7 +2,7 @@ package git
 
 import (
 	"errors"
-	"io"
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -17,13 +17,17 @@ func runCommand(name string, args ...string) error {
 	cmd.Stderr = &stderr
 
 	err := cmd.Run()
-	if err == nil {
-		return nil
+	msg := strings.TrimSpace(stderr.String())
+
+	if err != nil {
+		if msg != "" {
+			return errors.New(msg)
+		}
+		return err
 	}
 
-	msg := strings.TrimSpace(stderr.String())
 	if msg != "" {
-		return errors.New(msg)
+		fmt.Fprintln(os.Stderr, msg)
 	}
-	return err
+	return nil
 }

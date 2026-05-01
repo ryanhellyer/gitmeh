@@ -3,14 +3,18 @@ package aiapi
 import (
 	"bytes"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"gitmeh/internal/config"
 )
 
-func Request(payload string) (string, error) {
-	req, err := http.NewRequest("POST", config.GitMehURL, bytes.NewBufferString(payload))
+// CommitMessage sends the unified diff as the request body and returns the
+// suggested commit message from the API (plain text response).
+func CommitMessage(diff string) (string, error) {
+	req, err := http.NewRequest("POST", config.GitMehURL, bytes.NewBufferString(diff))
 	if err != nil {
 		return "", err
 	}
@@ -32,6 +36,14 @@ func Request(payload string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	body := strings.TrimSpace(string(bodyBytes))
 
-	return string(bodyBytes), nil
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		if body != "" {
+			return "", fmt.Errorf("%s: %s", resp.Status, body)
+		}
+		return "", fmt.Errorf("%s", resp.Status)
+	}
+
+	return body, nil
 }

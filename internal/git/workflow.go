@@ -1,11 +1,8 @@
 package git
 
-// Publish stages all changes, commits, and pushes to origin/master.
-func Publish() error {
-	if err := AddAll(); err != nil {
-		return err
-	}
-	if err := Commit("x"); err != nil {
+// CommitAndPush runs git commit with message then pushes to origin/master.
+func CommitAndPush(message string) error {
+	if err := Commit(message); err != nil {
 		return err
 	}
 	if err := PushOriginMaster(); err != nil {

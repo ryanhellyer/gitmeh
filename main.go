@@ -2,38 +2,41 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"gitmeh/internal/aiapi"
 	"gitmeh/internal/git"
 )
 
 func main() {
-	payload := `diff --git a/README.md b/README.md
---- a/README.md
-+++ b/README.md
-@@ -4,6 +4,11 @@
- ## Intro
+	if err := git.AddAll(); err != nil {
+		fmt.Println(err)
+		return
+	}
 
- Short description.
-+
-+### GITMEH_PROBE_OK
-+
-+Document the /gitmeh smoke test: POST a unified diff as plain text.
-+
- ## License
-`
+	diff, err := git.StagedDiff()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	if strings.TrimSpace(diff) == "" {
+		fmt.Println("nothing staged to commit")
+		return
+	}
 
-	if err := git.Publish(); err != nil {
+	msg, err := aiapi.CommitMessage(diff)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	if strings.TrimSpace(msg) == "" {
+		fmt.Println("empty commit message from API")
+		return
+	}
+
+	if err := git.CommitAndPush(msg); err != nil {
 		fmt.Println(err)
 		return
 	}
 	fmt.Println("Git commands executed successfully!")
-
-	body, err := aiapi.Request(payload)
-	if err != nil {
-		fmt.Println("Error sending request:", err)
-		return
-	}
-
-	fmt.Println("Response:", body)
 }
