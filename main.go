@@ -79,8 +79,9 @@ func main() {
 	fmt.Println("Git commands executed successfully!")
 }
 
-// reviewCommitMessage loops until the user accepts (Y), aborts (n), or edits (e)
-// and then reviews again. ok is false when the user aborts without error.
+// reviewCommitMessage loops until the user accepts (Y), aborts (n), or edits (e).
+// After edit, pressing Enter on the edited line submits that message (ok true).
+// ok is false when the user aborts without error.
 func reviewCommitMessage(suggested string) (final string, ok bool, err error) {
 	current := strings.TrimSpace(suggested)
 	rd := bufio.NewReader(os.Stdin)
@@ -116,8 +117,8 @@ func reviewCommitMessage(suggested string) (final string, ok bool, err error) {
 				fmt.Println("Commit message is empty; keeping previous text.")
 				continue
 			}
-			current = edited
-			continue
+			// Enter after editing submits this message; skip another Y/n/e round.
+			return edited, true, nil
 		default:
 			fmt.Println("Please enter y, n, or e (or press Enter for yes).")
 		}
