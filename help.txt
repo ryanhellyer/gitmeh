@@ -1,0 +1,15 @@
+gitmeh — stage, suggest a commit message, then commit and push
+
+USAGE
+  gitmeh [-h | --help]
+
+DESCRIPTION
+  Stages all changes (git add --all), sends the staged diff to a remote service
+  to propose a commit message, then lets you accept, reject, or edit that
+  message before running git commit and git push origin HEAD (current branch).
+
+OPTIONS
+  -h, --help   Show this help and exit.
+
+SEE ALSO
+  git-add(1), git-commit(1), git-push(1)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	_ "embed"
 	"fmt"
 	"io"
 	"os"
@@ -14,9 +15,24 @@ import (
 	"golang.org/x/term"
 )
 
+// helpText is filled at compile time from help.txt. The next line is a Go
+// compiler directive (not ordinary documentation): it tells the toolchain to
+// copy that file into the binary. import _ "embed" is required so the compiler
+// enables //go:embed even though we do not reference embed.FS in code.
+//
+//go:embed help.txt
+var helpText string
+
 const commitMsgPrompt = "Commit message: "
 
 func main() {
+	for _, arg := range os.Args[1:] {
+		if arg == "-h" || arg == "--help" {
+			fmt.Print(helpText)
+			return
+		}
+	}
+
 	if err := git.AddAll(); err != nil {
 		fmt.Println(err)
 		return
