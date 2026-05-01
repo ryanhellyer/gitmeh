@@ -23,7 +23,11 @@ func main() {
  ## License
 `
 
-	git.Publish()
+	if err := git.Publish(); err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println("Git commands executed successfully!")
 
 	body, err := aiapi.Request(payload)
 	if err != nil {

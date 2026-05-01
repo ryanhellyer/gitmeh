@@ -1,16 +1,29 @@
 package git
 
 import (
+	"fmt"
+	"io"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func runCommand(name string, args ...string) error {
 	cmd := exec.Command(name, args...)
 
-	// This ensures you see the git output in your terminal
 	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 
-	return cmd.Run()
+	var stderr strings.Builder
+	cmd.Stderr = io.MultiWriter(os.Stderr, &stderr)
+
+	err := cmd.Run()
+	if err == nil {
+		return nil
+	}
+
+	msg := strings.TrimSpace(stderr.String())
+	if msg != "" {
+		return fmt.Errorf("%w: %s", err, msg)
+	}
+	return err
 }
