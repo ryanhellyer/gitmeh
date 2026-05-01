@@ -2,7 +2,6 @@ package aiapi
 
 import (
 	"bytes"
-	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -24,12 +23,7 @@ func CommitMessage(diff string) (string, error) {
 	req.Header.Set("Content-Type", "text/plain; charset=UTF-8")
 	req.Header.Set("Accept", "text/plain")
 
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{Transport: tr}
-
-	resp, err := client.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
 	}
