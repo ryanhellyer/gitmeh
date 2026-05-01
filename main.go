@@ -23,7 +23,7 @@ func main() {
  ## License
 `
 
-	git.Push()
+	git.Publish()
 
 	body, err := aiapi.Request(payload)
 	if err != nil {
