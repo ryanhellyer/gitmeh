@@ -1,6 +1,7 @@
 package git
 
-// PushOriginMaster runs `git push origin master`.
-func PushOriginMaster() error {
-	return runCommand("git", "push", "origin", "master")
+// PushOriginHead runs `git push origin HEAD`, pushing the current branch to
+// origin using the same branch name on the remote.
+func PushOriginHead() error {
+	return runCommand("git", "push", "origin", "HEAD")
 }
