@@ -14,7 +14,7 @@ func runCommand(name string, args ...string) error {
 	cmd.Stdout = os.Stdout
 
 	var stderr strings.Builder
-	cmd.Stderr = io.MultiWriter(os.Stderr, &stderr)
+	cmd.Stderr = &stderr
 
 	err := cmd.Run()
 	if err == nil {
