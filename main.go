@@ -11,6 +11,7 @@ import (
 
 	"gitmeh/internal/aiapi"
 	"gitmeh/internal/git"
+	"gitmeh/internal/version"
 
 	"golang.org/x/term"
 )
@@ -27,8 +28,12 @@ const commitMsgPrompt = "Commit message: "
 
 func main() {
 	for _, arg := range os.Args[1:] {
-		if arg == "-h" || arg == "--help" {
+		switch arg {
+		case "-h", "--help":
 			fmt.Print(helpText)
+			return
+		case "-v", "--version":
+			fmt.Printf("gitmeh %s\n", version.Version)
 			return
 		}
 	}
