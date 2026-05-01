@@ -1,7 +1,7 @@
 package git
 
 import (
-	"fmt"
+	"errors"
 	"io"
 	"os"
 	"os/exec"
@@ -23,7 +23,7 @@ func runCommand(name string, args ...string) error {
 
 	msg := strings.TrimSpace(stderr.String())
 	if msg != "" {
-		return fmt.Errorf("%w: %s", err, msg)
+		return errors.New(msg)
 	}
 	return err
 }

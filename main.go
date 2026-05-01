@@ -24,7 +24,7 @@ func main() {
 `
 
 	if err := git.Publish(); err != nil {
-		fmt.Println("Error:", err)
+		fmt.Println(err)
 		return
 	}
 	fmt.Println("Git commands executed successfully!")
