@@ -19,36 +19,51 @@ Because writing thoughtful commit messages for your 14th unfinished side project
 
 ### Quick Start
 
-1. **Default (no API key):** Do nothing. The script shovels your **staged diff** at `https://ai.hellyer.kiwi/gitmeh` as `text/plain` and whatever text comes back is your commit message. The free tier is **limited to 1000 requests per day per IP address**, so if you and your twelve roommates all commit-spam at once, you will hit the wall together. Pace yourselves.
+1. **Default (no API key):** Do nothing special. The tool POSTs your **staged diff** to `https://ai.hellyer.kiwi/gitmeh` as `text/plain` and uses the response as the commit message. The free tier is **limited to 1000 requests per day per IP address**, so if you and your twelve roommates all commit-spam at once, you will hit the wall together. Pace yourselves.
+
+> THE OPENROUTER CODE STILL NEEDS TO BE INCLUDED IN THE GO REWRITE.
+
 2. **Optional — OpenRouter:** If you insist on owning the relationship, **get an OpenRouter API key** from [OpenRouter](https://openrouter.ai/keys) and **dump it in your shell config** (`~/.bashrc` or `~/.zshrc`):
+
    ```bash
    export OPENROUTER_API_KEY='your_key_here'
    ```
-   With that set, gitmeh bothers OpenRouter instead of the default URL. Optional: `OPENROUTER_MODEL` (default: `google/gemma-3-4b-it`). See [openrouter.ai/models](https://openrouter.ai/models).  
+
+   With that set, **`git meh`** bothers OpenRouter instead of the default URL. Optional: `OPENROUTER_MODEL` (default: `google/gemma-3-4b-it`). See [openrouter.ai/models](https://openrouter.ai/models).  
    Optional: `GITMEH_PROMPT` to customize the instruction sent to the AI (the diff is always appended; OpenRouter only — the free endpoint does not care about your feelings).  
    Optional: `GITMEH_DEFAULT_URL` if you want a different keyless endpoint (full URL; default: `https://ai.hellyer.kiwi/gitmeh`).
-3. **Install the thing globally** so you can run it from anywhere without that annoying `.sh` extension:
 
-macOS / Linux:
+3. **Install** the `git-meh` binary on your `PATH` (see below). Git discovers it as a subcommand, so you run **`git meh`** from any repository.
+
+### Install
+
+**3.0** is a full rewrite in **Go**. From the repository root, build `git-meh` next to `install.sh`, then run the installer (macOS / Linux):
+
 ```bash
-bash install.sh
+CGO_ENABLED=0 go build -o git-meh .
+./install.sh
 ```
 
-Windows (Git Bash - _totally untested as I don't use Windows_):
+That copies `git-meh` to `~/.local/bin/`. If that directory is not on your `PATH`, add it (for example in `~/.profile` or `~/.bashrc`):
+
 ```bash
-mkdir -p ~/bin
-cp gitmeh.sh ~/bin/gitmeh
-# Ensure ~/bin is in your PATH
+export PATH="${HOME}/.local/bin:${PATH}"
 ```
+
+Open a new shell or `source` the file you edited. **Usage:** `git meh`
+
+**Windows (Git Bash — untested):** From the repo root, `go build -o git-meh.exe .`, then put the directory containing `git-meh.exe` on your `PATH` so Git can run it as the `meh` subcommand.
 
 ### Requirements
 
-* `git`: duh!
-* `curl`: to send the SOS signal (default API or OpenRouter).
-* `jq`: to handle the robot's feelings — **only if** you are on the OpenRouter path. The keyless mode does not need it, because apparently plain text is easier than JSON.
+* **Git:** duh!
+* **Go:** only if you are building from source (see `go.mod` for the minimum toolchain version).
+* **`curl`:** to send the SOS signal (default API or OpenRouter).
+* **`jq`:** to handle the robot's feelings — **only if** you are on the OpenRouter path. The keyless mode does not need it, because apparently plain text is easier than JSON.
 
 ### Changelog
 
+* **`3.0`:** Rewrite in Go; install the `git-meh` binary and run **`git meh`** (the old shell `gitmeh` command is gone).
 * `2.1.0`: Default to the free hosted plain-text API so you can avoid another signup; OpenRouter when you set `OPENROUTER_API_KEY`; whine about the 1000 requests/day/IP limit on the free tier
 * `2.0.2`: Fixing default model documentation
 * `2.0.1`: Set default model to Google Gemma 3 4B as it is free
