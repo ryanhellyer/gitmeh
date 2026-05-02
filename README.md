@@ -1,5 +1,26 @@
 # gitmeh ¯\_(ツ)_/¯
 
+#####################################
+#####################################
+
+Git meh API fixes required
+
+** The API should detect errors, and if it finds an error from the API, it should immediately attempt to use another Open Router model. If it does need to serve an error after that, then it should be a consistent error that git meh can always recognise and serve a relevant error message for. **
+
+Go-test on  test [?] via 🐹 
+❯ git meh
+502 Bad Gateway | raw body: "OpenRouter error: Provider returned error"
+
+Go-test on  test [+] via 🐹 
+❯ git meh
+Post "https://ai.hellyer.kiwi/gitmeh": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+
+Go-test on  test [+] via 🐹 
+
+#####################################
+#####################################
+
+
 **AI-powered git commits for the terminally lazy.**
 
 **gitmeh** is a high-speed shortcut for your personal garbage repositories. It is designed specifically for those projects where quality does not matter and the only thing you care about is closing the laptop as fast as humanly possible.
