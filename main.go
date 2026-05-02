@@ -39,44 +39,47 @@ func main() {
 	}
 
 	if err := git.AddAll(); err != nil {
-		fmt.Println(err)
-		return
+		fatalErr(err)
 	}
 
 	diff, err := git.StagedDiff()
 	if err != nil {
-		fmt.Println(err)
-		return
+		fatalErr(err)
 	}
 	if strings.TrimSpace(diff) == "" {
-		fmt.Println("nothing staged to commit")
-		return
+		fatalMsg("nothing staged to commit")
 	}
 
 	msg, err := aiapi.CommitMessage(aiapi.DefaultHTTPClient(), diff)
 	if err != nil {
-		fmt.Println(err)
-		return
+		fatalErr(err)
 	}
 	if strings.TrimSpace(msg) == "" {
-		fmt.Println("empty commit message from API")
-		return
+		fatalMsg("empty commit message from API")
 	}
 
 	final, proceed, err := reviewCommitMessage(msg)
 	if err != nil {
-		fmt.Println(err)
-		return
+		fatalErr(err)
 	}
 	if !proceed {
-		return
+		os.Exit(1)
 	}
 
 	if err := git.CommitAndPush(final); err != nil {
-		fmt.Println(err)
-		return
+		fatalErr(err)
 	}
 	fmt.Println("Git commands executed successfully!")
+}
+
+func fatalErr(err error) {
+	fmt.Println(err)
+	os.Exit(1)
+}
+
+func fatalMsg(msg string) {
+	fmt.Println(msg)
+	os.Exit(1)
 }
 
 // reviewCommitMessage loops until the user accepts (Y), aborts (n), or edits (e).
