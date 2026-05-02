@@ -1,23 +1,143 @@
 #!/usr/bin/env bash
 # Install git-meh next to this script into ~/.local/bin as git-meh (for "git meh").
+# Picks the prebuilt binary from compile.sh (git-meh-<os>-<arch>) for this machine.
 set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-src="${script_dir}/git-meh"
 dest_dir="${HOME}/.local/bin"
 dest="${dest_dir}/git-meh"
 marker='# git-meh PATH (added by install.sh)'
 path_line='export PATH="${HOME}/.local/bin:${PATH}"'
 
+# Basename of the binary produced by compile.sh for this OS and CPU.
+select_artifact_name() {
+	local os arch
+	os=$(uname -s)
+	arch=$(uname -m)
+	case "${os}:${arch}" in
+	Linux:x86_64)
+		echo "git-meh-linux-x86_64"
+		;;
+	Linux:aarch64|Linux:arm64)
+		echo "git-meh-linux-arm64"
+		;;
+	Darwin:x86_64)
+		echo "git-meh-macos-x86_64"
+		;;
+	Darwin:arm64)
+		echo "git-meh-macos-arm64"
+		;;
+	*)
+		echo "error: unsupported system (${os} ${arch})." >&2
+		echo "       Supported: Linux x86_64 / arm64, macOS x86_64 / arm64." >&2
+		echo "       Run compile.sh on a supported host to build the matching binary." >&2
+		exit 1
+		;;
+	esac
+}
+
+# Refuse to install a Linux build on macOS (or the reverse).
+verify_os_matches_artifact() {
+	local artifact=$1
+	local os
+	os=$(uname -s)
+	case "${artifact}" in
+	git-meh-linux-*)
+		if [[ "${os}" != Linux ]]; then
+			echo "error: ${artifact} is a Linux binary; this system is ${os}." >&2
+			exit 1
+		fi
+		;;
+	git-meh-macos-*)
+		if [[ "${os}" != Darwin ]]; then
+			echo "error: ${artifact} is a macOS binary; this system is ${os}." >&2
+			exit 1
+		fi
+		;;
+	esac
+}
+
+# Best-effort check that the file looks like the right executable type.
+verify_binary_kind() {
+	local src=$1
+	local artifact=$2
+
+	if ! command -v file >/dev/null 2>&1; then
+		return 0
+	fi
+
+	local desc
+	desc=$(file -b "${src}" 2>/dev/null || true)
+	if [[ -z "${desc}" ]]; then
+		return 0
+	fi
+
+	case "${artifact}" in
+	git-meh-linux-x86_64)
+		echo "${desc}" | grep -qi 'ELF' || {
+			echo "error: ${artifact} should be an ELF binary; file(1) says: ${desc}" >&2
+			exit 1
+		}
+		echo "${desc}" | grep -qiE 'x86-64|x86_64' || {
+			echo "error: ${artifact} should be x86-64; file(1) says: ${desc}" >&2
+			exit 1
+		}
+		;;
+	git-meh-linux-arm64)
+		echo "${desc}" | grep -qi 'ELF' || {
+			echo "error: ${artifact} should be an ELF binary; file(1) says: ${desc}" >&2
+			exit 1
+		}
+		echo "${desc}" | grep -qiE 'aarch64|ARM aarch64|ARM, EABI64' || {
+			echo "error: ${artifact} should be ARM aarch64; file(1) says: ${desc}" >&2
+			exit 1
+		}
+		;;
+	git-meh-macos-x86_64)
+		echo "${desc}" | grep -qi 'Mach-O' || {
+			echo "error: ${artifact} should be a Mach-O binary; file(1) says: ${desc}" >&2
+			exit 1
+		}
+		echo "${desc}" | grep -qi 'x86_64' || {
+			echo "error: ${artifact} should be x86_64; file(1) says: ${desc}" >&2
+			exit 1
+		}
+		;;
+	git-meh-macos-arm64)
+		echo "${desc}" | grep -qi 'Mach-O' || {
+			echo "error: ${artifact} should be a Mach-O binary; file(1) says: ${desc}" >&2
+			exit 1
+		}
+		echo "${desc}" | grep -qi 'arm64' || {
+			echo "error: ${artifact} should be arm64; file(1) says: ${desc}" >&2
+			exit 1
+		}
+		;;
+	esac
+}
+
+artifact=$(select_artifact_name)
+src="${script_dir}/${artifact}"
+
 if [[ ! -f "${src}" ]]; then
-	echo "error: git-meh not found next to install.sh (expected: ${src})" >&2
+	echo "error: ${artifact} not found next to install.sh" >&2
+	echo "       Expected: ${src}" >&2
+	echo "       Run ./compile.sh in the repository root, then try again." >&2
 	exit 1
 fi
+
+if [[ ! -r "${src}" ]]; then
+	echo "error: cannot read ${src}" >&2
+	exit 1
+fi
+
+verify_os_matches_artifact "${artifact}"
+verify_binary_kind "${src}" "${artifact}"
 
 mkdir -p "${dest_dir}"
 install -m 0755 "${src}" "${dest}"
 
-echo "Installed: ${dest}"
+echo "Installed: ${dest}  (from ${artifact})"
 
 path_has_local_bin() {
 	case ":${PATH}:" in
