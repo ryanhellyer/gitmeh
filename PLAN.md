@@ -29,23 +29,6 @@
   • internal/git: Optional integration tests that set GIT_DIR/GIT_WORK_TREE to temp dirs and run real git—more setup, but catches regressions in
     runCommand / diff behavior.
 
-  ────────────────────────────────────────
-
-
-
-  Architecture (same runtime behavior, clearer seams)
-
-  HTTP client ownership: httpClient is a package-level singleton in internal/aiapi:
-
-   internal/aiapi/client.go lines 17-17
-
-  var httpClient = &http.Client{Timeout: httpTimeout}
-
-  Without changing defaults, you can pass a *http.Client into CommitMessage (or a tiny Do(req *http.Request) (*http.Response, error) interface) from main.
-   That keeps production behavior while making tests deterministic and avoiding globals.
-
-  Config surface: internal/config is one URL constant. If you ever add env-based overrides, centralizing reads there keeps main and aiapi thin; until
-  then, documenting “no env” matches reality.
 
   ────────────────────────────────────────
 
