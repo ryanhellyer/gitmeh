@@ -53,7 +53,7 @@ func main() {
 		return
 	}
 
-	msg, err := aiapi.CommitMessage(diff)
+	msg, err := aiapi.CommitMessage(aiapi.DefaultHTTPClient(), diff)
 	if err != nil {
 		fmt.Println(err)
 		return
