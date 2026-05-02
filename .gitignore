@@ -1,1 +1,25 @@
+# Built binary (repo root)
 git-meh
+git-meh.exe
+
+# Go
+*.exe
+*.test
+*.out
+coverage.*
+profile.cov
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# Local env / secrets
+.env
+.env.*
+!.env.example
