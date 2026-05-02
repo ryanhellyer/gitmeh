@@ -58,27 +58,19 @@ Because writing thoughtful commit messages for your 14th unfinished side project
 
 ### Install
 
-**3.0** is a full rewrite in **Go**. From the repository root, build `git-meh` next to `install.sh`, then run the installer (macOS / Linux):
+**macOS / Linux** — from the repository root:
 
 ```bash
-CGO_ENABLED=0 go build -o git-meh .
 ./install.sh
 ```
 
-That copies `git-meh` to `~/.local/bin/`. If that directory is not on your `PATH`, add it (for example in `~/.profile` or `~/.bashrc`):
+That installs into `~/.local/bin` and updates your shell config so that directory is on your `PATH` when needed. Use a new terminal window, or run the `source …` command the script prints, then **`git meh`**.
 
-```bash
-export PATH="${HOME}/.local/bin:${PATH}"
-```
-
-Open a new shell or `source` the file you edited. **Usage:** `git meh`
-
-**Windows (Git Bash — untested):** From the repo root, `go build -o git-meh.exe .`, then put the directory containing `git-meh.exe` on your `PATH` so Git can run it as the `meh` subcommand.
+**Windows:** Put **`git-meh.exe`** on your `PATH`, then run **`git meh`**.
 
 ### Requirements
 
 * **Git:** duh!
-* **Go:** only if you are building from source (see `go.mod` for the minimum toolchain version).
 * **`curl`:** to send the SOS signal (default API or OpenRouter).
 * **`jq`:** to handle the robot's feelings — **only if** you are on the OpenRouter path. The keyless mode does not need it, because apparently plain text is easier than JSON.
 
