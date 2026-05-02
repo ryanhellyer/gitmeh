@@ -1,6 +1,8 @@
 # Built binary (repo root)
 git-meh
 git-meh.exe
+git-meh-*
+
 
 # Go
 *.exe

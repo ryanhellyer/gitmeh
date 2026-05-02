@@ -7,6 +7,11 @@ Git meh API fixes required
 
 ** The API should detect errors, and if it finds an error from the API, it should immediately attempt to use another Open Router model. If it does need to serve an error after that, then it should be a consistent error that git meh can always recognise and serve a relevant error message for. **
 
+
+# I THINK THIS MAY BE CAUSED BY THE BODY BEING TOO LARGE - it happened when I added a bunch of binaries
+502 Bad Gateway | raw body: "OpenRouter error: Provider returned error"
+
+
 Go-test on  test [?] via 🐹 
 ❯ git meh
 502 Bad Gateway | raw body: "OpenRouter error: Provider returned error"
