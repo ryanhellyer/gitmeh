@@ -10,6 +10,7 @@ import (
 	"unicode/utf8"
 
 	"gitmeh/internal/aiapi"
+	"gitmeh/internal/config"
 	"gitmeh/internal/git"
 	"gitmeh/internal/version"
 
@@ -50,7 +51,7 @@ func main() {
 		fatalMsg("nothing staged to commit")
 	}
 
-	msg, err := aiapi.CommitMessage(aiapi.DefaultHTTPClient(), diff)
+	msg, err := aiapi.CommitMessage(aiapi.DefaultHTTPClient(), config.GitMehURL, diff)
 	if err != nil {
 		fatalErr(err)
 	}

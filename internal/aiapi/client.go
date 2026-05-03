@@ -8,15 +8,13 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	"gitmeh/internal/config"
 )
 
 const httpTimeout = 20 * time.Second
 
 // DefaultHTTPClient returns an [http.Client] configured with the timeout used
-// for gitmeh's API requests. Pass it to [CommitMessage], or supply your own
-// client (for example in tests).
+// for gitmeh's API requests. Pass it with your endpoint URL to [CommitMessage],
+// or supply your own client (for example in tests).
 func DefaultHTTPClient() *http.Client {
 	return &http.Client{Timeout: httpTimeout}
 }
@@ -42,16 +40,16 @@ func commitMessageSpinner(stop <-chan struct{}, done chan<- struct{}) {
 	}
 }
 
-// CommitMessage POSTs the unified diff as plain UTF-8 text and returns the
-// response body as the commit message (leading/trailing whitespace trimmed).
-// On non-2xx responses, the returned error includes the raw body as a quoted
-// string for debugging the API. client must not be nil.
-func CommitMessage(client *http.Client, diff string) (string, error) {
+// CommitMessage POSTs the unified diff to endpoint as plain UTF-8 text and
+// returns the response body as the commit message (leading/trailing
+// whitespace trimmed). On non-2xx responses, the returned error includes the
+// raw body as a quoted string for debugging the API. client must not be nil.
+func CommitMessage(client *http.Client, endpoint, diff string) (string, error) {
 	if client == nil {
 		return "", fmt.Errorf("http client is nil")
 	}
 
-	req, err := http.NewRequest("POST", config.GitMehURL, bytes.NewBufferString(diff))
+	req, err := http.NewRequest("POST", endpoint, bytes.NewBufferString(diff))
 	if err != nil {
 		return "", err
 	}
