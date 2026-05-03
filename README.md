@@ -66,9 +66,7 @@ Because writing thoughtful commit messages for your 14th unfinished side project
 
 1. **Default (no env API key):** The tool POSTs JSON to **`https://ai.hellyer.test/v1/chat/completions`** with the compiled-in bearer and model (same as the sample `curl` in development). TLS verification is skipped only for host **`ai.hellyer.test`** (self-signed dev certs). To smoke-test another host, run `./scripts/verify-openai-chat.sh` with **`OPENROUTER_API_KEY`** or **`GITMEH_VERIFY_API_KEY`** set (expect HTTP 200 and a non-empty commit line).
 
-2. **Legacy plain POST (opt-in):** Set `GITMEH_LEGACY_PLAIN=true` to use the old **`text/plain`** flow against `GITMEH_DEFAULT_URL` (default `https://ai.hellyer.kiwi/gitmeh`).
-
-3. **Optional — your own API key:** **Get an OpenRouter API key** from [OpenRouter](https://openrouter.ai/keys) and **dump it in your shell config** (`~/.bashrc` or `~/.zshrc`):
+2. **Optional — your own API key:** **Get an OpenRouter API key** from [OpenRouter](https://openrouter.ai/keys) and **dump it in your shell config** (`~/.bashrc` or `~/.zshrc`):
 
    ```bash
    export OPENROUTER_API_KEY='your_key_here'
@@ -77,7 +75,7 @@ Because writing thoughtful commit messages for your 14th unfinished side project
    With that set, **`git meh`** uses OpenRouter (or set `GITMEH_API_BASE` to another OpenAI-compatible root). Optional: `OPENROUTER_MODEL` / `GITMEH_MODEL` (default on OpenRouter: `google/gemma-3-4b-it`). See [openrouter.ai/models](https://openrouter.ai/models).  
    Optional: `GITMEH_PROMPT` to customize the system instructions (the unified diff is always a separate user message).
 
-4. **Install** the `git-meh` binary on your `PATH` (see below). Git discovers it as a subcommand, so you run **`git meh`** from any repository.
+3. **Install** the `git-meh` binary on your `PATH` (see below). Git discovers it as a subcommand, so you run **`git meh`** from any repository.
 
 ### Install
 
@@ -116,7 +114,7 @@ go test -tags=integration ./... -count=1
 ### Changelog
 
 * **`3.0`:** Rewrite in Go; install the `git-meh` binary and run **`git meh`** (the old shell `gitmeh` command is gone).
-* **`3.x`:** Default path uses hosted OpenAI-compatible chat at `https://ai.hellyer.test/v1` with compiled-in public credentials; OpenRouter when you set an API key; legacy `text/plain` via `GITMEH_LEGACY_PLAIN=true`.
+* **`3.x`:** Default path uses hosted OpenAI-compatible chat at `https://ai.hellyer.test/v1` with compiled-in public credentials; OpenRouter when you set an API key.
 * `2.1.0`: Default to the free hosted plain-text API so you can avoid another signup; OpenRouter when you set `OPENROUTER_API_KEY`; whine about the 1000 requests/day/IP limit on the free tier
 * `2.0.2`: Fixing default model documentation
 * `2.0.1`: Set default model to Google Gemma 3 4B as it is free

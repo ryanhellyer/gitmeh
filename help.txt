@@ -31,9 +31,5 @@ ENVIRONMENT
     GITMEH_API_BASE      Optional API root (default: https://openrouter.ai/api/v1).
     GITMEH_MODEL         Optional model id (default with user key: google/gemma-3-4b-it).
 
-  Legacy plain POST (opt-in)
-    GITMEH_LEGACY_PLAIN  If true/1/yes: POST unified diff as text/plain to
-                         GITMEH_DEFAULT_URL (default https://ai.hellyer.kiwi/gitmeh).
-
 SEE ALSO
   git-add(1), git-commit(1), git-push(1)

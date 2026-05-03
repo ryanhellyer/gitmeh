@@ -52,24 +52,13 @@ func main() {
 	}
 
 	cfg := config.Load()
-	httpClient := aiapi.DefaultHTTPClient()
-	if cfg.Backend == config.BackendOpenAIChat {
-		httpClient = aiapi.HTTPClientForChatBase(cfg.Chat.BaseURL)
-	}
-	var msg string
-	switch cfg.Backend {
-	case config.BackendPlain:
-		msg, err = aiapi.CommitMessage(httpClient, cfg.PlainURL, diff)
-	case config.BackendOpenAIChat:
-		msg, err = aiapi.CommitMessageOpenAIChat(httpClient, aiapi.OpenAIChatParams{
-			BaseURL:      cfg.Chat.BaseURL,
-			APIKey:       cfg.Chat.APIKey,
-			Model:        cfg.Chat.Model,
-			SystemPrompt: cfg.Chat.Prompt,
-		}, diff)
-	default:
-		fatalMsg("internal error: unknown AI backend")
-	}
+	httpClient := aiapi.HTTPClientForChatBase(cfg.Chat.BaseURL)
+	msg, err := aiapi.CommitMessageOpenAIChat(httpClient, aiapi.OpenAIChatParams{
+		BaseURL:      cfg.Chat.BaseURL,
+		APIKey:       cfg.Chat.APIKey,
+		Model:        cfg.Chat.Model,
+		SystemPrompt: cfg.Chat.Prompt,
+	}, diff)
 	if err != nil {
 		fatalErr(err)
 	}

@@ -1,10 +1,8 @@
 package aiapi
 
 import (
-	"bytes"
 	"crypto/tls"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -15,8 +13,7 @@ import (
 const httpTimeout = 20 * time.Second
 
 // DefaultHTTPClient returns an [http.Client] configured with the timeout used
-// for gitmeh's API requests. Pass it with your endpoint URL to [CommitMessage],
-// or supply your own client (for example in tests).
+// for gitmeh's API requests.
 func DefaultHTTPClient() *http.Client {
 	return &http.Client{Timeout: httpTimeout}
 }
@@ -81,42 +78,4 @@ func withGeneratingCommitSpinner(fn func() (string, error)) (string, error) {
 		<-spinnerDone
 	}()
 	return fn()
-}
-
-// CommitMessage POSTs the unified diff to endpoint as plain UTF-8 text and
-// returns the response body as the commit message (leading/trailing
-// whitespace trimmed). On non-2xx responses, the returned error includes the
-// raw body as a quoted string for debugging the API. client must not be nil.
-func CommitMessage(client *http.Client, endpoint, diff string) (string, error) {
-	if client == nil {
-		return "", fmt.Errorf("http client is nil")
-	}
-
-	req, err := http.NewRequest("POST", endpoint, bytes.NewBufferString(diff))
-	if err != nil {
-		return "", err
-	}
-
-	req.Header.Set("Content-Type", "text/plain; charset=UTF-8")
-	req.Header.Set("Accept", "text/plain")
-
-	return withGeneratingCommitSpinner(func() (string, error) {
-		resp, err := client.Do(req)
-		if err != nil {
-			return "", err
-		}
-		defer resp.Body.Close()
-
-		bodyBytes, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return "", err
-		}
-		raw := string(bodyBytes)
-
-		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-			return "", fmt.Errorf("%s | raw body: %q", resp.Status, raw)
-		}
-
-		return strings.TrimSpace(raw), nil
-	})
 }

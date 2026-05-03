@@ -7,14 +7,12 @@ import (
 )
 
 func TestLoad_defaultChatWhenNoUserKey(t *testing.T) {
-	t.Setenv("GITMEH_LEGACY_PLAIN", "")
 	t.Setenv("GITMEH_API_KEY", "")
 	t.Setenv("OPENROUTER_API_KEY", "")
 	t.Setenv("GITMEH_API_BASE", "")
 	t.Setenv("GITMEH_MODEL", "")
 	t.Setenv("OPENROUTER_MODEL", "")
 	t.Setenv("GITMEH_PROMPT", "")
-	t.Setenv("GITMEH_DEFAULT_URL", "")
 
 	got := Load()
 	if got.Backend != BackendOpenAIChat {
@@ -35,7 +33,6 @@ func TestLoad_defaultChatWhenNoUserKey(t *testing.T) {
 }
 
 func TestLoad_userAPIKeyOverridesDefaultPublic(t *testing.T) {
-	t.Setenv("GITMEH_LEGACY_PLAIN", "")
 	t.Setenv("GITMEH_API_KEY", "user-key")
 	t.Setenv("OPENROUTER_API_KEY", "")
 	t.Setenv("GITMEH_API_BASE", "")
@@ -49,7 +46,6 @@ func TestLoad_userAPIKeyOverridesDefaultPublic(t *testing.T) {
 }
 
 func TestLoad_customBaseWithDefaultPublicKey(t *testing.T) {
-	t.Setenv("GITMEH_LEGACY_PLAIN", "")
 	t.Setenv("GITMEH_API_KEY", "")
 	t.Setenv("OPENROUTER_API_KEY", "")
 	t.Setenv("GITMEH_API_BASE", "https://staging.example/v1")
@@ -72,38 +68,7 @@ func TestLoad_customBaseWithDefaultPublicKey(t *testing.T) {
 	}
 }
 
-func TestLoad_legacyPlainDefaultURL(t *testing.T) {
-	t.Setenv("GITMEH_LEGACY_PLAIN", "true")
-	t.Setenv("GITMEH_API_KEY", "")
-	t.Setenv("OPENROUTER_API_KEY", "")
-	t.Setenv("GITMEH_DEFAULT_URL", "")
-
-	got := Load()
-	if got.Backend != BackendPlain {
-		t.Fatalf("backend: got %v want plain", got.Backend)
-	}
-	if got.PlainURL != DefaultPlainURL {
-		t.Fatalf("PlainURL: got %q", got.PlainURL)
-	}
-}
-
-func TestLoad_legacyPlainCustomURL(t *testing.T) {
-	t.Setenv("GITMEH_LEGACY_PLAIN", "1")
-	t.Setenv("GITMEH_API_KEY", "")
-	t.Setenv("OPENROUTER_API_KEY", "")
-	t.Setenv("GITMEH_DEFAULT_URL", "https://example.com/git")
-
-	got := Load()
-	if got.Backend != BackendPlain {
-		t.Fatalf("backend: got %v want plain", got.Backend)
-	}
-	if got.PlainURL != "https://example.com/git" {
-		t.Fatalf("PlainURL: got %q", got.PlainURL)
-	}
-}
-
 func TestLoad_chatOpenRouterKey(t *testing.T) {
-	t.Setenv("GITMEH_LEGACY_PLAIN", "")
 	t.Setenv("GITMEH_API_KEY", "")
 	t.Setenv("OPENROUTER_API_KEY", "sk-test")
 	t.Setenv("GITMEH_API_BASE", "")
@@ -127,7 +92,6 @@ func TestLoad_chatOpenRouterKey(t *testing.T) {
 }
 
 func TestLoad_chatGITMEHKeyOverridesBase(t *testing.T) {
-	t.Setenv("GITMEH_LEGACY_PLAIN", "")
 	t.Setenv("GITMEH_API_KEY", "k")
 	t.Setenv("OPENROUTER_API_KEY", "")
 	t.Setenv("GITMEH_API_BASE", "https://api.openai.com/v1")
@@ -153,7 +117,6 @@ func TestLoad_chatGITMEHKeyOverridesBase(t *testing.T) {
 }
 
 func TestLoad_chatGITMEHKeyPreferredOverOpenRouter(t *testing.T) {
-	t.Setenv("GITMEH_LEGACY_PLAIN", "")
 	t.Setenv("GITMEH_API_KEY", "primary")
 	t.Setenv("OPENROUTER_API_KEY", "secondary")
 	t.Setenv("GITMEH_API_BASE", "")
@@ -167,7 +130,6 @@ func TestLoad_chatGITMEHKeyPreferredOverOpenRouter(t *testing.T) {
 }
 
 func TestLoad_chatOpenRouterModelEnv(t *testing.T) {
-	t.Setenv("GITMEH_LEGACY_PLAIN", "")
 	t.Setenv("GITMEH_API_KEY", "x")
 	t.Setenv("GITMEH_MODEL", "")
 	t.Setenv("OPENROUTER_MODEL", "anthropic/claude-3-haiku")
