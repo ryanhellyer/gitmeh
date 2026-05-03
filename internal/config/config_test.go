@@ -6,7 +6,11 @@ import (
 	"testing"
 )
 
-func TestLoad_hostedDefault(t *testing.T) {
+func TestLoad_builtinKeyWhenNoUserKey(t *testing.T) {
+	prev := BuiltinAPIKey
+	BuiltinAPIKey = "builtin-from-link-time"
+	t.Cleanup(func() { BuiltinAPIKey = prev })
+
 	t.Setenv("GITMEH_LEGACY_PLAIN", "")
 	t.Setenv("GITMEH_API_KEY", "")
 	t.Setenv("OPENROUTER_API_KEY", "")
@@ -14,20 +18,19 @@ func TestLoad_hostedDefault(t *testing.T) {
 	t.Setenv("GITMEH_MODEL", "")
 	t.Setenv("OPENROUTER_MODEL", "")
 	t.Setenv("GITMEH_PROMPT", "")
-	t.Setenv("GITMEH_HOSTED_TOKEN", "")
 	t.Setenv("GITMEH_DEFAULT_URL", "")
 
 	got := Load()
 	if got.Backend != BackendOpenAIChat {
 		t.Fatalf("backend: got %v want chat", got.Backend)
 	}
-	if got.Chat.BaseURL != HostedChatBaseURL {
+	if got.Chat.BaseURL != "https://openrouter.ai/api/v1" {
 		t.Fatalf("BaseURL: got %q", got.Chat.BaseURL)
 	}
-	if got.Chat.APIKey != HostedPublicBearer {
+	if got.Chat.APIKey != "builtin-from-link-time" {
 		t.Fatalf("APIKey: got %q", got.Chat.APIKey)
 	}
-	if got.Chat.Model != HostedDefaultModel {
+	if got.Chat.Model != "google/gemma-3-4b-it" {
 		t.Fatalf("Model: got %q", got.Chat.Model)
 	}
 	if got.Chat.Prompt == "" {
@@ -35,7 +38,29 @@ func TestLoad_hostedDefault(t *testing.T) {
 	}
 }
 
-func TestLoad_hostedCustomBaseAndToken(t *testing.T) {
+func TestLoad_userAPIKeyOverridesBuiltin(t *testing.T) {
+	prev := BuiltinAPIKey
+	BuiltinAPIKey = "builtin-from-link-time"
+	t.Cleanup(func() { BuiltinAPIKey = prev })
+
+	t.Setenv("GITMEH_LEGACY_PLAIN", "")
+	t.Setenv("GITMEH_API_KEY", "user-key")
+	t.Setenv("OPENROUTER_API_KEY", "")
+	t.Setenv("GITMEH_API_BASE", "")
+	t.Setenv("GITMEH_MODEL", "")
+	t.Setenv("OPENROUTER_MODEL", "")
+
+	got := Load()
+	if got.Chat.APIKey != "user-key" {
+		t.Fatalf("APIKey: got %q want user override", got.Chat.APIKey)
+	}
+}
+
+func TestLoad_builtinKeyCustomBase(t *testing.T) {
+	prev := BuiltinAPIKey
+	BuiltinAPIKey = "builtin-from-link-time"
+	t.Cleanup(func() { BuiltinAPIKey = prev })
+
 	t.Setenv("GITMEH_LEGACY_PLAIN", "")
 	t.Setenv("GITMEH_API_KEY", "")
 	t.Setenv("OPENROUTER_API_KEY", "")
@@ -43,7 +68,6 @@ func TestLoad_hostedCustomBaseAndToken(t *testing.T) {
 	t.Setenv("GITMEH_MODEL", "")
 	t.Setenv("OPENROUTER_MODEL", "")
 	t.Setenv("GITMEH_PROMPT", "")
-	t.Setenv("GITMEH_HOSTED_TOKEN", "staging-token")
 
 	got := Load()
 	if got.Backend != BackendOpenAIChat {
@@ -52,7 +76,7 @@ func TestLoad_hostedCustomBaseAndToken(t *testing.T) {
 	if got.Chat.BaseURL != "https://staging.example/v1" {
 		t.Fatalf("BaseURL: got %q", got.Chat.BaseURL)
 	}
-	if got.Chat.APIKey != "staging-token" {
+	if got.Chat.APIKey != "builtin-from-link-time" {
 		t.Fatalf("APIKey")
 	}
 }

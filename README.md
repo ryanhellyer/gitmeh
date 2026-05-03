@@ -48,13 +48,13 @@ Go-test on  test [+] via 🐹
 Because writing thoughtful commit messages for your 14th unfinished side project is a waste of your precious nap time.
 
 * **Nuclear Staging:** It runs `git add --all` without asking. It stages your unfinished thoughts, your secrets, and that one large `test.mp4` you forgot was there.
-* **AI Guesswork:** By default it sends your staged diff to a free hosted **OpenAI-compatible** chat endpoint (`https://ai.hellyer.kiwi/v1`) so you do not have to sign up for anything. If you are picky, set an API key and point it at OpenRouter or another compatible host.
+* **AI Guesswork:** Official builds call an **OpenAI-compatible** chat API (default base `https://openrouter.ai/api/v1`) using a bearer token baked in at compile time. Set `GITMEH_API_KEY` or `OPENROUTER_API_KEY` to use your own key and optionally `GITMEH_API_BASE` for another compatible host.
 * **Automatic Pushing:** Shovels your changes directly to the cloud so you can stop looking at the terminal.
 * **Built-in Judgement:** Features 40+ randomized status messages that mock your lack of professional standards.
 
 ### Quick Start
 
-1. **Default (no API key):** Do nothing special. The tool POSTs JSON to **`https://ai.hellyer.kiwi/v1/chat/completions`** (OpenAI-compatible chat) with a fixed public bearer token baked into the binary. The free tier stays **rate-limited per IP** on the server. Until that route accepts **POST** on your deployment, use **legacy plain** (step 2) or deploy the server per [docs/hosted-api-migration-instructions.md](docs/hosted-api-migration-instructions.md). After deploy, run `./scripts/verify-hosted-api.sh` (expect HTTP 200 and a non-empty commit line).
+1. **Default (no env API key):** Use an official binary (or build with `GITMEH_BUILTIN_API_KEY` set — see `compile.sh`). The tool POSTs JSON to **`/v1/chat/completions`** on the configured API root (default OpenRouter). For local builds without a built-in key, set **`OPENROUTER_API_KEY`** (or **`GITMEH_API_KEY`**) as in step 3. To smoke-test an endpoint, run `./scripts/verify-openai-chat.sh` with **`OPENROUTER_API_KEY`** or **`GITMEH_VERIFY_API_KEY`** set (expect HTTP 200 and a non-empty commit line).
 
 2. **Legacy plain POST (opt-in):** Set `GITMEH_LEGACY_PLAIN=true` to use the old **`text/plain`** flow against `GITMEH_DEFAULT_URL` (default `https://ai.hellyer.kiwi/gitmeh`).
 
@@ -106,7 +106,7 @@ go test -tags=integration ./... -count=1
 ### Changelog
 
 * **`3.0`:** Rewrite in Go; install the `git-meh` binary and run **`git meh`** (the old shell `gitmeh` command is gone).
-* **`3.x`:** Default path uses hosted OpenAI-compatible chat at `https://ai.hellyer.kiwi/v1`; legacy `text/plain` via `GITMEH_LEGACY_PLAIN=true`.
+* **`3.x`:** Default path uses OpenRouter-compatible chat with optional link-time default API key; legacy `text/plain` via `GITMEH_LEGACY_PLAIN=true`.
 * `2.1.0`: Default to the free hosted plain-text API so you can avoid another signup; OpenRouter when you set `OPENROUTER_API_KEY`; whine about the 1000 requests/day/IP limit on the free tier
 * `2.0.2`: Fixing default model documentation
 * `2.0.1`: Set default model to Google Gemma 3 4B as it is free

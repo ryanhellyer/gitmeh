@@ -1,8 +1,8 @@
 # Hosted gitmeh API: OpenAI-compatible chat (server-side work)
 
-Use this document when modifying **your server** (the stack behind `https://ai.hellyer.kiwi/`). In Cursor or another AI tool, open your **server or infra repository** and attach this file (or paste its body) so the model can implement the contract. The **gitmeh** Go client in this repo already defaults to the request shape below.
+Keep the existing /gitmeh path with it's existing (now legacy) functionality. But add a new endpoint to handle this API in the same format as a typical Open AI compatible API endpoint would work. Currently, only the one existing API format should be approved, which would be the one in the legacy functionality, just as a typical raw Open AI API endpoint rather than it being filtered and given pre-instructions like it is now.
 
-## Filled parameters (sync with gitmeh client)
+
 
 | Item | Value |
 |------|--------|
@@ -13,25 +13,15 @@ Use this document when modifying **your server** (the stack behind `https://ai.h
 | Keep legacy plain path | **Yes** until old binaries are gone; same per-IP limits as today |
 | Max JSON request body | **2097152** bytes (2 MiB) before parsing; reject larger with `413` or `400` and a short JSON error |
 
-Optional: allow overriding the public token on the server via env; the client can override the bearer string with `GITMEH_HOSTED_TOKEN` for staging.
-
----
-
-## Goal
-
-Align the **default / built-in** gitmeh hosted service with the **same HTTP contract** the gitmeh Go client uses for external OpenAI-compatible providers: **`POST {baseURL}/chat/completions`** with JSON request/response.
-
-Legacy behavior remains on `POST https://ai.hellyer.kiwi/gitmeh` as `text/plain` for users who set `GITMEH_LEGACY_PLAIN=true`.
-
 ## Reference client behavior (must match)
 
 - **Method/path:** `POST {baseURL}/chat/completions` where `baseURL` has **no trailing slash** (client uses `base + "/chat/completions"`).
 - **Headers (request):**
   - `Content-Type: application/json`
   - `Accept: application/json`
-  - `Authorization: Bearer gitmeh-public-client` for official builds (or value from `GITMEH_HOSTED_TOKEN` when set). Treat the token as **optional** or **required** on the server, but document which; mismatches should return **401** with JSON error if you require it.
+  - `Authorization: Bearer <token>` — the published CLI uses `GITMEH_API_KEY` or `OPENROUTER_API_KEY` when set; otherwise a bearer string injected at **link time** (`-X gitmeh/internal/config.BuiltinAPIKey=...` in release builds). Treat the token as **optional** or **required** on the server, but document which; mismatches should return **401** with JSON error if you require it.
 - **JSON request body (minimum fields to support):**
-  - `model` (string) — client sends `gitmeh-hosted` by default for the hosted path; you may **ignore** and always run your local model, or **map** ids; return **400** if you require a specific model and it is missing.
+  - `model` (string) — client sends the configured model id (default on OpenRouter: `google/gemma-3-4b-it`); you may **ignore** and always run your local model, or **map** ids; return **400** if you require a specific model and it is missing.
   - `messages` (array) — client sends **two** messages: `role: "system"` (instructions) and `role: "user"` with content `Unified diff:\n` + unified diff text.
   - `temperature` (number, e.g. 0.3) — optional to honor; safe to clamp.
   - `max_tokens` (number, e.g. 512) — optional to honor; cap server-side for cost control.
@@ -62,25 +52,9 @@ Use **optional Bearer** for `https://ai.hellyer.kiwi/v1/chat/completions`:
 
 ## Deployment notes
 
-- Reverse proxy: allow at least **2 MiB** upload for this route.
+- Reverse proxy: allow maximum of 0.5 MB upload for this route.
 - Preserve real client IP for rate limiting (`X-Forwarded-For` trust).
-
-## Flow (optional)
-
-```mermaid
-flowchart LR
-  subgraph client [gitmeh_client]
-    ChatPOST[POST_chat_completions_JSON]
-  end
-  subgraph server [hellyer_hosted_API]
-    Legacy[legacy_text_plain_gitmeh]
-    NewChat[v1_chat_completions]
-    Model[shared_model_inference]
-  end
-  ChatPOST --> NewChat --> Model
-  Legacy --> Model
-```
 
 ## After the API is live
 
-Run `./scripts/verify-hosted-api.sh` from this repo (or set `GITMEH_VERIFY_BASE` / `GITMEH_VERIFY_TOKEN` for staging). Expect HTTP **200** and non-empty `choices[0].message.content`.
+The reference CLI in this repo now defaults to a generic OpenAI-compatible host; to verify any `/v1/chat/completions` deployment (including staging for this service), run `./scripts/verify-openai-chat.sh` with `OPENROUTER_API_KEY` or `GITMEH_VERIFY_API_KEY` set, and optional `GITMEH_VERIFY_BASE` / `GITMEH_VERIFY_MODEL`. Expect HTTP **200** and non-empty `choices[0].message.content`.

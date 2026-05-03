@@ -10,18 +10,12 @@ import (
 // is enabled.
 const DefaultPlainURL = "https://ai.hellyer.kiwi/gitmeh"
 
-// HostedChatBaseURL is the default OpenAI-compatible API root for the built-in
-// hosted service (no trailing slash). POST {HostedChatBaseURL}/chat/completions.
-const HostedChatBaseURL = "https://ai.hellyer.kiwi/v1"
-
-// HostedPublicBearer is the default Authorization bearer for the hosted chat
-// endpoint. It is a weak client identifier, not a billing secret; the server
-// should enforce limits by IP as today. See docs/hosted-api-migration-instructions.md.
-const HostedPublicBearer = "gitmeh-public-client"
-
-// HostedDefaultModel is sent in JSON for the hosted path; the server may ignore
-// it and always use its local model.
-const HostedDefaultModel = "gitmeh-hosted"
+// BuiltinAPIKey is the bearer token used when GITMEH_API_KEY and
+// OPENROUTER_API_KEY are unset. Official release binaries should set this at
+// link time, for example:
+//
+//	go build -ldflags "-X gitmeh/internal/config.BuiltinAPIKey=sk-or-..."
+var BuiltinAPIKey string
 
 // Backend selects how gitmeh talks to the model service.
 type Backend int
@@ -62,17 +56,15 @@ func legacyPlainEnabled() bool {
 
 // Load reads environment variables.
 //
-// Default (no user API key): OpenAI-compatible chat against [HostedChatBaseURL]
-// with [HostedPublicBearer] unless GITMEH_HOSTED_TOKEN is set. Override base with
-// GITMEH_API_BASE for staging.
-//
-// User API key (GITMEH_API_KEY or OPENROUTER_API_KEY): chat against
-// GITMEH_API_BASE or OpenRouter; model from GITMEH_MODEL / OPENROUTER_MODEL.
+// Default OpenAI-compatible chat: GITMEH_API_BASE (or [defaultOpenAIBase]),
+// GITMEH_MODEL / OPENROUTER_MODEL (or [defaultModel]), and GITMEH_API_KEY /
+// OPENROUTER_API_KEY when set. If neither API key env var is set, [BuiltinAPIKey]
+// is used (typically injected in release builds).
 //
 // Legacy plain (GITMEH_LEGACY_PLAIN=true): POST text/plain to GITMEH_DEFAULT_URL
 // or [DefaultPlainURL].
 //
-// GITMEH_PROMPT optionally overrides the system instructions (chat modes only).
+// GITMEH_PROMPT optionally overrides the system instructions (chat mode only).
 func Load() App {
 	plain := strings.TrimSpace(os.Getenv("GITMEH_DEFAULT_URL"))
 	if plain == "" {
@@ -95,47 +87,29 @@ func Load() App {
 
 	base := strings.TrimSpace(os.Getenv("GITMEH_API_BASE"))
 	base = strings.TrimRight(base, "/")
+	if base == "" {
+		base = defaultOpenAIBase
+	}
 
 	model := strings.TrimSpace(os.Getenv("GITMEH_MODEL"))
 	if model == "" {
 		model = strings.TrimSpace(os.Getenv("OPENROUTER_MODEL"))
 	}
-
-	if userKey != "" {
-		if base == "" {
-			base = defaultOpenAIBase
-		}
-		if model == "" {
-			model = defaultModel
-		}
-		return App{
-			Backend:  BackendOpenAIChat,
-			PlainURL: plain,
-			Chat: OpenAIChat{
-				BaseURL: base,
-				APIKey:  userKey,
-				Model:   model,
-				Prompt:  prompt,
-			},
-		}
-	}
-
-	if base == "" {
-		base = HostedChatBaseURL
-	}
-	hostedKey := strings.TrimSpace(os.Getenv("GITMEH_HOSTED_TOKEN"))
-	if hostedKey == "" {
-		hostedKey = HostedPublicBearer
-	}
 	if model == "" {
-		model = HostedDefaultModel
+		model = defaultModel
 	}
+
+	apiKey := userKey
+	if apiKey == "" {
+		apiKey = strings.TrimSpace(BuiltinAPIKey)
+	}
+
 	return App{
 		Backend:  BackendOpenAIChat,
 		PlainURL: plain,
 		Chat: OpenAIChat{
 			BaseURL: base,
-			APIKey:  hostedKey,
+			APIKey:  apiKey,
 			Model:   model,
 			Prompt:  prompt,
 		},
