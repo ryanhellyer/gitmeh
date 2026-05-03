@@ -88,6 +88,23 @@ That installs into `~/.local/bin` and updates your shell config so that director
 * **`curl`:** to send the SOS signal (default API or OpenRouter).
 * **`jq`:** to handle the robot's feelings — **only if** you are on the OpenRouter path. The keyless mode does not need it, because apparently plain text is easier than JSON.
 
+### Unit Tests
+
+From the repository root, with Go installed:
+
+```bash
+go vet ./...
+go test ./... -count=1
+```
+
+### Integration Tests
+
+Integration tests use `git`. They need **`git` installed on your system **
+
+```bash
+go test -tags=integration ./... -count=1
+```
+
 ### Changelog
 
 * **`3.0`:** Rewrite in Go; install the `git-meh` binary and run **`git meh`** (the old shell `gitmeh` command is gone).
