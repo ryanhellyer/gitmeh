@@ -48,27 +48,26 @@ Go-test on  test [+] via 🐹
 Because writing thoughtful commit messages for your 14th unfinished side project is a waste of your precious nap time.
 
 * **Nuclear Staging:** It runs `git add --all` without asking. It stages your unfinished thoughts, your secrets, and that one large `test.mp4` you forgot was there.
-* **AI Guesswork:** By default it flings your staged diff at a free hosted API so you do not have to pretend you will ever sign up for anything. It still explains what you did because you have already forgotten. If you are picky, wave an OpenRouter key around and make it beg a model of your choosing instead.
+* **AI Guesswork:** By default it sends your staged diff to a free hosted **OpenAI-compatible** chat endpoint (`https://ai.hellyer.kiwi/v1`) so you do not have to sign up for anything. If you are picky, set an API key and point it at OpenRouter or another compatible host.
 * **Automatic Pushing:** Shovels your changes directly to the cloud so you can stop looking at the terminal.
 * **Built-in Judgement:** Features 40+ randomized status messages that mock your lack of professional standards.
 
 ### Quick Start
 
-1. **Default (no API key):** Do nothing special. The tool POSTs your **staged diff** to `https://ai.hellyer.kiwi/gitmeh` as `text/plain` and uses the response as the commit message. The free tier is **limited to 1000 requests per day per IP address**, so if you and your twelve roommates all commit-spam at once, you will hit the wall together. Pace yourselves.
+1. **Default (no API key):** Do nothing special. The tool POSTs JSON to **`https://ai.hellyer.kiwi/v1/chat/completions`** (OpenAI-compatible chat) with a fixed public bearer token baked into the binary. The free tier stays **rate-limited per IP** on the server. Until that route accepts **POST** on your deployment, use **legacy plain** (step 2) or deploy the server per [docs/hosted-api-migration-instructions.md](docs/hosted-api-migration-instructions.md). After deploy, run `./scripts/verify-hosted-api.sh` (expect HTTP 200 and a non-empty commit line).
 
-> THE OPENROUTER CODE STILL NEEDS TO BE INCLUDED IN THE GO REWRITE.
+2. **Legacy plain POST (opt-in):** Set `GITMEH_LEGACY_PLAIN=true` to use the old **`text/plain`** flow against `GITMEH_DEFAULT_URL` (default `https://ai.hellyer.kiwi/gitmeh`).
 
-2. **Optional — OpenRouter:** If you insist on owning the relationship, **get an OpenRouter API key** from [OpenRouter](https://openrouter.ai/keys) and **dump it in your shell config** (`~/.bashrc` or `~/.zshrc`):
+3. **Optional — your own API key:** **Get an OpenRouter API key** from [OpenRouter](https://openrouter.ai/keys) and **dump it in your shell config** (`~/.bashrc` or `~/.zshrc`):
 
    ```bash
    export OPENROUTER_API_KEY='your_key_here'
    ```
 
-   With that set, **`git meh`** bothers OpenRouter instead of the default URL. Optional: `OPENROUTER_MODEL` (default: `google/gemma-3-4b-it`). See [openrouter.ai/models](https://openrouter.ai/models).  
-   Optional: `GITMEH_PROMPT` to customize the instruction sent to the AI (the diff is always appended; OpenRouter only — the free endpoint does not care about your feelings).  
-   Optional: `GITMEH_DEFAULT_URL` if you want a different keyless endpoint (full URL; default: `https://ai.hellyer.kiwi/gitmeh`).
+   With that set, **`git meh`** uses OpenRouter (or set `GITMEH_API_BASE` to another OpenAI-compatible root). Optional: `OPENROUTER_MODEL` / `GITMEH_MODEL` (default on OpenRouter: `google/gemma-3-4b-it`). See [openrouter.ai/models](https://openrouter.ai/models).  
+   Optional: `GITMEH_PROMPT` to customize the system instructions (the unified diff is always a separate user message).
 
-3. **Install** the `git-meh` binary on your `PATH` (see below). Git discovers it as a subcommand, so you run **`git meh`** from any repository.
+4. **Install** the `git-meh` binary on your `PATH` (see below). Git discovers it as a subcommand, so you run **`git meh`** from any repository.
 
 ### Install
 
@@ -85,8 +84,7 @@ That installs into `~/.local/bin` and updates your shell config so that director
 ### Requirements
 
 * **Git:** duh!
-* **`curl`:** to send the SOS signal (default API or OpenRouter).
-* **`jq`:** to handle the robot's feelings — **only if** you are on the OpenRouter path. The keyless mode does not need it, because apparently plain text is easier than JSON.
+* **Network:** the binary uses Go’s HTTP client (no shell `curl` required for the default path).
 
 ### Unit Tests
 
@@ -108,6 +106,7 @@ go test -tags=integration ./... -count=1
 ### Changelog
 
 * **`3.0`:** Rewrite in Go; install the `git-meh` binary and run **`git meh`** (the old shell `gitmeh` command is gone).
+* **`3.x`:** Default path uses hosted OpenAI-compatible chat at `https://ai.hellyer.kiwi/v1`; legacy `text/plain` via `GITMEH_LEGACY_PLAIN=true`.
 * `2.1.0`: Default to the free hosted plain-text API so you can avoid another signup; OpenRouter when you set `OPENROUTER_API_KEY`; whine about the 1000 requests/day/IP limit on the free tier
 * `2.0.2`: Fixing default model documentation
 * `2.0.1`: Set default model to Google Gemma 3 4B as it is free

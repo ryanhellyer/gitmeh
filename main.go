@@ -51,7 +51,22 @@ func main() {
 		fatalMsg("nothing staged to commit")
 	}
 
-	msg, err := aiapi.CommitMessage(aiapi.DefaultHTTPClient(), config.GitMehURL, diff)
+	cfg := config.Load()
+	httpClient := aiapi.DefaultHTTPClient()
+	var msg string
+	switch cfg.Backend {
+	case config.BackendPlain:
+		msg, err = aiapi.CommitMessage(httpClient, cfg.PlainURL, diff)
+	case config.BackendOpenAIChat:
+		msg, err = aiapi.CommitMessageOpenAIChat(httpClient, aiapi.OpenAIChatParams{
+			BaseURL:      cfg.Chat.BaseURL,
+			APIKey:       cfg.Chat.APIKey,
+			Model:        cfg.Chat.Model,
+			SystemPrompt: cfg.Chat.Prompt,
+		}, diff)
+	default:
+		fatalMsg("internal error: unknown AI backend")
+	}
 	if err != nil {
 		fatalErr(err)
 	}

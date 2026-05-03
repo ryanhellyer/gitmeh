@@ -12,5 +12,28 @@ OPTIONS
   -h, --help       Show this help and exit.
   -v, --version    Print the program name and version, then exit.
 
+ENVIRONMENT
+  Default (built-in hosted chat, OpenAI-compatible JSON)
+    Uses https://ai.hellyer.kiwi/v1/chat/completions with a fixed public bearer
+    unless you override the variables below.
+
+    GITMEH_API_BASE      Optional API root, no trailing slash (staging override).
+    GITMEH_HOSTED_TOKEN  Optional bearer token (default matches server contract).
+    GITMEH_MODEL         Optional model id (default: gitmeh-hosted; server may ignore).
+    GITMEH_PROMPT        Optional system instructions; unified diff is always sent
+                         in a separate user message after your text.
+
+  User API key (OpenAI-compatible chat, e.g. OpenRouter)
+    GITMEH_API_KEY       Preferred bearer token for /v1/chat/completions.
+    OPENROUTER_API_KEY   Alternative env name (same behavior if GITMEH_API_KEY unset).
+    GITMEH_API_BASE      Optional API root. Default: https://openrouter.ai/api/v1
+    GITMEH_MODEL         Optional model id. OPENROUTER_MODEL is used if GITMEH_MODEL
+                         is unset. Default: google/gemma-3-4b-it
+    GITMEH_PROMPT        Optional system instructions (same as hosted).
+
+  Legacy plain POST (opt-in)
+    GITMEH_LEGACY_PLAIN  If true/1/yes: POST unified diff as text/plain to
+                         GITMEH_DEFAULT_URL (default https://ai.hellyer.kiwi/gitmeh).
+
 SEE ALSO
   git-add(1), git-commit(1), git-push(1)
