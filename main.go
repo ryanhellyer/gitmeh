@@ -108,7 +108,7 @@ func reviewCommitMessage(suggested string, stdin io.Reader, stdout io.Writer) (f
 			return "", false, nil
 		case ans == "e" || ans == "edit":
 			fmt.Fprintln(stdout)
-			edited, err := readCommitMessageInline(current, rd, stdout)
+			edited, err := readCommitMessageInline(current, stdin, rd, stdout)
 			if err != nil {
 				return "", false, err
 			}
@@ -125,17 +125,31 @@ func reviewCommitMessage(suggested string, stdin io.Reader, stdout io.Writer) (f
 	}
 }
 
+// stdinTerminalFD returns the FD to put in raw mode when stdin is an
+// [os.File] connected to a terminal; otherwise ok is false.
+func stdinTerminalFD(stdin io.Reader) (fd int, ok bool) {
+	f, isFile := stdin.(*os.File)
+	if !isFile {
+		return 0, false
+	}
+	fd = int(f.Fd())
+	if !term.IsTerminal(fd) {
+		return 0, false
+	}
+	return fd, true
+}
+
 // readCommitMessageInline shows an editable single-line field prefilled with
 // initial; Enter submits the current line. Ctrl+C aborts with an error.
-// rd must be the same bufio.Reader used for the surrounding menu reads.
+// stdin must be the same reader rd wraps (e.g. bufio.NewReader(stdin)).
 // stdout is used for prompts (inject io.Discard in tests). If nil, os.Stdout.
-func readCommitMessageInline(initial string, rd *bufio.Reader, stdout io.Writer) (string, error) {
+func readCommitMessageInline(initial string, stdin io.Reader, rd *bufio.Reader, stdout io.Writer) (string, error) {
 	if stdout == nil {
 		stdout = os.Stdout
 	}
 
-	fd := int(os.Stdin.Fd())
-	if !term.IsTerminal(fd) {
+	fd, useTTY := stdinTerminalFD(stdin)
+	if !useTTY {
 		fmt.Fprintf(stdout, "%s%s\n", commitMsgPrompt, initial)
 		fmt.Fprint(stdout, "(not a terminal — press Enter to keep, or type a new message)\n> ")
 		line, err := rd.ReadString('\n')

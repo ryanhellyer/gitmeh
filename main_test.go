@@ -4,11 +4,8 @@ package main
 
 import (
 	"io"
-	"os"
 	"strings"
 	"testing"
-
-	"golang.org/x/term"
 )
 
 func TestReviewCommitMessage(t *testing.T) {
@@ -96,10 +93,6 @@ func TestReviewCommitMessage(t *testing.T) {
 }
 
 func TestReviewCommitMessage_editNonTerminal(t *testing.T) {
-	if term.IsTerminal(int(os.Stdin.Fd())) {
-		t.Skip("uses non-terminal edit path; stdin is a TTY")
-	}
-
 	in := strings.NewReader("e\nreplaced msg\n")
 	got, ok, err := reviewCommitMessage("original", in, io.Discard)
 	if err != nil {
