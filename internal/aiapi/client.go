@@ -19,8 +19,8 @@ func DefaultHTTPClient() *http.Client {
 	return &http.Client{Timeout: httpTimeout}
 }
 
-// commitMessageSpinner draws a simple ASCII spinner on stderr until stop is closed.
-func commitMessageSpinner(stop <-chan struct{}, done chan<- struct{}) {
+// stderrCommitSpinner draws a simple ASCII spinner on stderr until stop is closed.
+func stderrCommitSpinner(stop <-chan struct{}, done chan<- struct{}) {
 	defer close(done)
 
 	frames := []string{"-", "\\", "|", "/"}
@@ -40,6 +40,18 @@ func commitMessageSpinner(stop <-chan struct{}, done chan<- struct{}) {
 	}
 }
 
+// withGeneratingCommitSpinner runs fn while showing a stderr spinner until fn returns.
+func withGeneratingCommitSpinner(fn func() (string, error)) (string, error) {
+	stopSpinner := make(chan struct{})
+	spinnerDone := make(chan struct{})
+	go stderrCommitSpinner(stopSpinner, spinnerDone)
+	defer func() {
+		close(stopSpinner)
+		<-spinnerDone
+	}()
+	return fn()
+}
+
 // CommitMessage POSTs the unified diff to endpoint as plain UTF-8 text and
 // returns the response body as the commit message (leading/trailing
 // whitespace trimmed). On non-2xx responses, the returned error includes the
@@ -57,29 +69,23 @@ func CommitMessage(client *http.Client, endpoint, diff string) (string, error) {
 	req.Header.Set("Content-Type", "text/plain; charset=UTF-8")
 	req.Header.Set("Accept", "text/plain")
 
-	stopSpinner := make(chan struct{})
-	spinnerDone := make(chan struct{})
-	go commitMessageSpinner(stopSpinner, spinnerDone)
-	defer func() {
-		close(stopSpinner)
-		<-spinnerDone
-	}()
+	return withGeneratingCommitSpinner(func() (string, error) {
+		resp, err := client.Do(req)
+		if err != nil {
+			return "", err
+		}
+		defer resp.Body.Close()
 
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return "", err
+		}
+		raw := string(bodyBytes)
 
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-	raw := string(bodyBytes)
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			return "", fmt.Errorf("%s | raw body: %q", resp.Status, raw)
+		}
 
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return "", fmt.Errorf("%s | raw body: %q", resp.Status, raw)
-	}
-
-	return strings.TrimSpace(raw), nil
+		return strings.TrimSpace(raw), nil
+	})
 }
