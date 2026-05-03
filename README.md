@@ -12,6 +12,15 @@ Git meh API fixes required
 502 Bad Gateway | raw body: "OpenRouter error: Provider returned error"
 
 
+❯ git meh
+
+Suggested commit message:
+```git
+
+Accept this message? [Y]es / [n]o / [e]dit: 
+
+
+
 Go-test on  test [?] via 🐹 
 ❯ git meh
 502 Bad Gateway | raw body: "OpenRouter error: Provider returned error"
