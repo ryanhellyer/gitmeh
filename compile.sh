@@ -11,11 +11,7 @@ build() {
 	local goarch=$2
 	local out=$3
 	echo "==> ${out}  (GOOS=${goos} GOARCH=${goarch})"
-	local ldflags=()
-	if [[ -n "${GITMEH_BUILTIN_API_KEY:-}" ]]; then
-		ldflags=(-ldflags "-X gitmeh/internal/config.BuiltinAPIKey=${GITMEH_BUILTIN_API_KEY}")
-	fi
-	GOOS="${goos}" GOARCH="${goarch}" go build "${ldflags[@]}" -o "${out}" .
+	GOOS="${goos}" GOARCH="${goarch}" go build -o "${out}" .
 }
 
 # Linux (servers, desktops, most VMs)
@@ -28,11 +24,7 @@ build darwin arm64 git-meh-macos-arm64
 
 # Native binary for this machine (install.sh expects "git-meh" here until it learns the names above)
 echo "==> git-meh  (native, current OS/arch)"
-ldflags_native=()
-if [[ -n "${GITMEH_BUILTIN_API_KEY:-}" ]]; then
-	ldflags_native=(-ldflags "-X gitmeh/internal/config.BuiltinAPIKey=${GITMEH_BUILTIN_API_KEY}")
-fi
-go build "${ldflags_native[@]}" -o git-meh .
+go build -o git-meh .
 
 echo
 echo "Done. Artifacts:"

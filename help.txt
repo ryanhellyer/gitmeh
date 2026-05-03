@@ -14,9 +14,9 @@ OPTIONS
 
 ENVIRONMENT
   OpenAI-compatible chat (default)
-    POST JSON to /v1/chat/completions. Official builds include a default bearer
-    token at link time; set GITMEH_API_KEY or OPENROUTER_API_KEY to use your own
-    credentials instead (same endpoint variables as below).
+    POST JSON to /v1/chat/completions. A default public bearer is compiled in
+    when configured in the source tree; set GITMEH_API_KEY or OPENROUTER_API_KEY
+    to use your own credentials instead (same endpoint variables as below).
 
     GITMEH_API_BASE      Optional API root, no trailing slash (default:
                          https://openrouter.ai/api/v1).

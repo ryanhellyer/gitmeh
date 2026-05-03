@@ -10,12 +10,10 @@ import (
 // is enabled.
 const DefaultPlainURL = "https://ai.hellyer.kiwi/gitmeh"
 
-// BuiltinAPIKey is the bearer token used when GITMEH_API_KEY and
-// OPENROUTER_API_KEY are unset. Official release binaries should set this at
-// link time, for example:
-//
-//	go build -ldflags "-X gitmeh/internal/config.BuiltinAPIKey=sk-or-..."
-var BuiltinAPIKey string
+// DefaultPublicAPIKey is the bearer token used when GITMEH_API_KEY and
+// OPENROUTER_API_KEY are unset. Intended for a public, rate-limited free tier
+// (not a billing secret); set when that endpoint is available.
+const DefaultPublicAPIKey = ""
 
 // Backend selects how gitmeh talks to the model service.
 type Backend int
@@ -58,8 +56,8 @@ func legacyPlainEnabled() bool {
 //
 // Default OpenAI-compatible chat: GITMEH_API_BASE (or [defaultOpenAIBase]),
 // GITMEH_MODEL / OPENROUTER_MODEL (or [defaultModel]), and GITMEH_API_KEY /
-// OPENROUTER_API_KEY when set. If neither API key env var is set, [BuiltinAPIKey]
-// is used (typically injected in release builds).
+// OPENROUTER_API_KEY when set. If neither API key env var is set,
+// [DefaultPublicAPIKey] is used.
 //
 // Legacy plain (GITMEH_LEGACY_PLAIN=true): POST text/plain to GITMEH_DEFAULT_URL
 // or [DefaultPlainURL].
@@ -101,7 +99,7 @@ func Load() App {
 
 	apiKey := userKey
 	if apiKey == "" {
-		apiKey = strings.TrimSpace(BuiltinAPIKey)
+		apiKey = strings.TrimSpace(DefaultPublicAPIKey)
 	}
 
 	return App{

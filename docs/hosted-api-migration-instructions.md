@@ -19,7 +19,7 @@ Keep the existing /gitmeh path with it's existing (now legacy) functionality. Bu
 - **Headers (request):**
   - `Content-Type: application/json`
   - `Accept: application/json`
-  - `Authorization: Bearer <token>` — the published CLI uses `GITMEH_API_KEY` or `OPENROUTER_API_KEY` when set; otherwise a bearer string injected at **link time** (`-X gitmeh/internal/config.BuiltinAPIKey=...` in release builds). Treat the token as **optional** or **required** on the server, but document which; mismatches should return **401** with JSON error if you require it.
+  - `Authorization: Bearer <token>` — the published CLI uses `GITMEH_API_KEY` or `OPENROUTER_API_KEY` when set; otherwise the compiled-in public bearer from `internal/config.DefaultPublicAPIKey`. Treat the token as **optional** or **required** on the server, but document which; mismatches should return **401** with JSON error if you require it.
 - **JSON request body (minimum fields to support):**
   - `model` (string) — client sends the configured model id (default on OpenRouter: `google/gemma-3-4b-it`); you may **ignore** and always run your local model, or **map** ids; return **400** if you require a specific model and it is missing.
   - `messages` (array) — client sends **two** messages: `role: "system"` (instructions) and `role: "user"` with content `Unified diff:\n` + unified diff text.

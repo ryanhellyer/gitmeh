@@ -6,11 +6,7 @@ import (
 	"testing"
 )
 
-func TestLoad_builtinKeyWhenNoUserKey(t *testing.T) {
-	prev := BuiltinAPIKey
-	BuiltinAPIKey = "builtin-from-link-time"
-	t.Cleanup(func() { BuiltinAPIKey = prev })
-
+func TestLoad_defaultChatWhenNoUserKey(t *testing.T) {
 	t.Setenv("GITMEH_LEGACY_PLAIN", "")
 	t.Setenv("GITMEH_API_KEY", "")
 	t.Setenv("OPENROUTER_API_KEY", "")
@@ -27,8 +23,8 @@ func TestLoad_builtinKeyWhenNoUserKey(t *testing.T) {
 	if got.Chat.BaseURL != "https://openrouter.ai/api/v1" {
 		t.Fatalf("BaseURL: got %q", got.Chat.BaseURL)
 	}
-	if got.Chat.APIKey != "builtin-from-link-time" {
-		t.Fatalf("APIKey: got %q", got.Chat.APIKey)
+	if got.Chat.APIKey != DefaultPublicAPIKey {
+		t.Fatalf("APIKey: got %q want DefaultPublicAPIKey", got.Chat.APIKey)
 	}
 	if got.Chat.Model != "google/gemma-3-4b-it" {
 		t.Fatalf("Model: got %q", got.Chat.Model)
@@ -38,11 +34,7 @@ func TestLoad_builtinKeyWhenNoUserKey(t *testing.T) {
 	}
 }
 
-func TestLoad_userAPIKeyOverridesBuiltin(t *testing.T) {
-	prev := BuiltinAPIKey
-	BuiltinAPIKey = "builtin-from-link-time"
-	t.Cleanup(func() { BuiltinAPIKey = prev })
-
+func TestLoad_userAPIKeyOverridesDefaultPublic(t *testing.T) {
 	t.Setenv("GITMEH_LEGACY_PLAIN", "")
 	t.Setenv("GITMEH_API_KEY", "user-key")
 	t.Setenv("OPENROUTER_API_KEY", "")
@@ -56,11 +48,7 @@ func TestLoad_userAPIKeyOverridesBuiltin(t *testing.T) {
 	}
 }
 
-func TestLoad_builtinKeyCustomBase(t *testing.T) {
-	prev := BuiltinAPIKey
-	BuiltinAPIKey = "builtin-from-link-time"
-	t.Cleanup(func() { BuiltinAPIKey = prev })
-
+func TestLoad_customBaseWithDefaultPublicKey(t *testing.T) {
 	t.Setenv("GITMEH_LEGACY_PLAIN", "")
 	t.Setenv("GITMEH_API_KEY", "")
 	t.Setenv("OPENROUTER_API_KEY", "")
@@ -76,8 +64,8 @@ func TestLoad_builtinKeyCustomBase(t *testing.T) {
 	if got.Chat.BaseURL != "https://staging.example/v1" {
 		t.Fatalf("BaseURL: got %q", got.Chat.BaseURL)
 	}
-	if got.Chat.APIKey != "builtin-from-link-time" {
-		t.Fatalf("APIKey")
+	if got.Chat.APIKey != DefaultPublicAPIKey {
+		t.Fatalf("APIKey: got %q", got.Chat.APIKey)
 	}
 }
 
