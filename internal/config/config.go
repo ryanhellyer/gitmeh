@@ -23,10 +23,11 @@ const (
 
 // OpenAIChat holds settings for [BackendOpenAIChat].
 type OpenAIChat struct {
-	BaseURL string
-	APIKey  string
-	Model   string
-	Prompt  string
+	BaseURL        string
+	APIKey         string
+	Model          string
+	Prompt         string
+	FallbackModels []string
 }
 
 // App is resolved configuration from the environment.
@@ -69,6 +70,17 @@ func Load() App {
 		model = strings.TrimSpace(os.Getenv("OPENROUTER_MODEL"))
 	}
 
+	fallbackRaw := strings.TrimSpace(os.Getenv("GITMEH_FALLBACK_MODELS"))
+	var fallbackModels []string
+	if fallbackRaw != "" {
+		for _, p := range strings.Split(fallbackRaw, ",") {
+			p = strings.TrimSpace(p)
+			if p != "" {
+				fallbackModels = append(fallbackModels, p)
+			}
+		}
+	}
+
 	var apiKey string
 	if userKey != "" {
 		apiKey = userKey
@@ -91,10 +103,11 @@ func Load() App {
 	return App{
 		Backend: BackendOpenAIChat,
 		Chat: OpenAIChat{
-			BaseURL: base,
-			APIKey:  apiKey,
-			Model:   model,
-			Prompt:  prompt,
+			BaseURL:        base,
+			APIKey:         apiKey,
+			Model:          model,
+			Prompt:         prompt,
+			FallbackModels: fallbackModels,
 		},
 	}
 }

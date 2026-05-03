@@ -54,10 +54,11 @@ func main() {
 	cfg := config.Load()
 	httpClient := aiapi.HTTPClientForChatBase(cfg.Chat.BaseURL)
 	msg, err := aiapi.CommitMessageOpenAIChat(httpClient, aiapi.OpenAIChatParams{
-		BaseURL:      cfg.Chat.BaseURL,
-		APIKey:       cfg.Chat.APIKey,
-		Model:        cfg.Chat.Model,
-		SystemPrompt: cfg.Chat.Prompt,
+		BaseURL:        cfg.Chat.BaseURL,
+		APIKey:         cfg.Chat.APIKey,
+		Model:          cfg.Chat.Model,
+		SystemPrompt:   cfg.Chat.Prompt,
+		FallbackModels: cfg.Chat.FallbackModels,
 	}, diff)
 	if err != nil {
 		fatalErr(err)

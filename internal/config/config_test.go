@@ -129,6 +129,38 @@ func TestLoad_chatGITMEHKeyPreferredOverOpenRouter(t *testing.T) {
 	}
 }
 
+func TestLoad_fallbackModels(t *testing.T) {
+	t.Setenv("GITMEH_API_KEY", "k")
+	t.Setenv("GITMEH_FALLBACK_MODELS", " model-b,model-c , ")
+	t.Setenv("GITMEH_API_BASE", "")
+	t.Setenv("GITMEH_MODEL", "")
+	t.Setenv("OPENROUTER_MODEL", "")
+	t.Setenv("GITMEH_PROMPT", "")
+
+	got := Load()
+	if len(got.Chat.FallbackModels) != 2 {
+		t.Fatalf("expected 2 fallback models, got %d: %v", len(got.Chat.FallbackModels), got.Chat.FallbackModels)
+	}
+	if got.Chat.FallbackModels[0] != "model-b" {
+		t.Errorf("fallback[0] = %q", got.Chat.FallbackModels[0])
+	}
+	if got.Chat.FallbackModels[1] != "model-c" {
+		t.Errorf("fallback[1] = %q", got.Chat.FallbackModels[1])
+	}
+}
+
+func TestLoad_fallbackModelsEmptyEnv(t *testing.T) {
+	t.Setenv("GITMEH_API_KEY", "k")
+	t.Setenv("GITMEH_FALLBACK_MODELS", "")
+	t.Setenv("GITMEH_API_BASE", "")
+	t.Setenv("GITMEH_MODEL", "")
+
+	got := Load()
+	if len(got.Chat.FallbackModels) != 0 {
+		t.Fatalf("expected 0 fallback models, got %d", len(got.Chat.FallbackModels))
+	}
+}
+
 func TestLoad_chatOpenRouterModelEnv(t *testing.T) {
 	t.Setenv("GITMEH_API_KEY", "x")
 	t.Setenv("GITMEH_MODEL", "")

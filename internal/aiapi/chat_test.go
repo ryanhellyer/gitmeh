@@ -4,6 +4,7 @@ package aiapi
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -88,6 +89,135 @@ func TestCommitMessageOpenAIChat_success(t *testing.T) {
 	}
 	if got != "fix typo" {
 		t.Fatalf("got %q want trimmed", got)
+	}
+}
+
+func TestCommitMessageOpenAIChat_retryOnTransientError(t *testing.T) {
+	t.Parallel()
+
+	attempt := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		attempt++
+		if attempt == 1 {
+			w.WriteHeader(http.StatusBadGateway)
+			_, _ = w.Write([]byte(`{"error":{"message":"Provider returned error"}}`))
+			return
+		}
+		_, _ = w.Write([]byte(`{"choices":[{"message":{"role":"assistant","content":"fix: retry worked"}}]}`))
+	}))
+	defer srv.Close()
+
+	got, err := CommitMessageOpenAIChat(srv.Client(), OpenAIChatParams{
+		BaseURL:      srv.URL,
+		APIKey:       "k",
+		Model:        "m",
+		SystemPrompt: "p",
+	}, "diff")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != "fix: retry worked" {
+		t.Fatalf("got %q", got)
+	}
+}
+
+func TestCommitMessageOpenAIChat_fallbackOnPrimaryFail(t *testing.T) {
+	t.Parallel()
+
+	callCount := make(map[string]int)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		model := r.URL.Query().Get("model")
+		callCount[model]++
+
+		if model == "" {
+			var req chatRequest
+			_ = json.NewDecoder(r.Body).Decode(&req)
+			model = req.Model
+		}
+
+		if model == "primary" {
+			w.WriteHeader(http.StatusBadGateway)
+			_, _ = w.Write([]byte(`{"error":{"message":"upstream error"}}`))
+			return
+		}
+		_, _ = w.Write([]byte(`{"choices":[{"message":{"role":"assistant","content":"feat: fallback saved the day"}}]}`))
+	}))
+	defer srv.Close()
+
+	got, err := CommitMessageOpenAIChat(srv.Client(), OpenAIChatParams{
+		BaseURL:        srv.URL,
+		APIKey:         "k",
+		Model:          "primary",
+		SystemPrompt:   "p",
+		FallbackModels: []string{"backup"},
+	}, "diff")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != "feat: fallback saved the day" {
+		t.Fatalf("got %q", got)
+	}
+}
+
+func TestCommitMessageOpenAIChat_contextLengthTriggersFallback(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req chatRequest
+		_ = json.NewDecoder(r.Body).Decode(&req)
+
+		if req.Model == "small-context" {
+			w.WriteHeader(http.StatusBadGateway)
+			_, _ = w.Write([]byte(`{"error":{"message":"maximum context length is 4096 tokens"}}`))
+			return
+		}
+		_, _ = w.Write([]byte(`{"choices":[{"message":{"role":"assistant","content":"fix: larger context model works"}}]}`))
+	}))
+	defer srv.Close()
+
+	got, err := CommitMessageOpenAIChat(srv.Client(), OpenAIChatParams{
+		BaseURL:        srv.URL,
+		APIKey:         "k",
+		Model:          "small-context",
+		SystemPrompt:   "p",
+		FallbackModels: []string{"big-context"},
+	}, "diff")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != "fix: larger context model works" {
+		t.Fatalf("got %q", got)
+	}
+}
+
+func TestCommitMessageOpenAIChat_allModelsFail(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadGateway)
+		_, _ = w.Write([]byte(`{"error":{"message":"always fails"}}`))
+	}))
+	defer srv.Close()
+
+	_, err := CommitMessageOpenAIChat(srv.Client(), OpenAIChatParams{
+		BaseURL:        srv.URL,
+		APIKey:         "k",
+		Model:          "m1",
+		SystemPrompt:   "p",
+		FallbackModels: []string{"m2", "m3"},
+	}, "diff")
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	var allFailed *AllModelsFailedError
+	if !errors.As(err, &allFailed) {
+		t.Fatalf("expected *AllModelsFailedError, got %T: %v", err, err)
+	}
+	if len(allFailed.Models) != 3 {
+		t.Fatalf("expected 3 models in error, got %d", len(allFailed.Models))
+	}
+	if !strings.Contains(err.Error(), "always fails") {
+		t.Errorf("error should contain cause: %v", err)
 	}
 }
 
