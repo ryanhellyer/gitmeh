@@ -2,9 +2,11 @@ package aiapi
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -17,6 +19,35 @@ const httpTimeout = 20 * time.Second
 // or supply your own client (for example in tests).
 func DefaultHTTPClient() *http.Client {
 	return &http.Client{Timeout: httpTimeout}
+}
+
+// HTTPClientForChatBase returns a client with [httpTimeout]. For
+// ai.hellyer.test (typical self-signed dev TLS), certificate verification is
+// skipped so the default hosted endpoint matches curl -k behavior.
+func HTTPClientForChatBase(baseURL string) *http.Client {
+	if !chatBaseSkipsTLSVerify(baseURL) {
+		return DefaultHTTPClient()
+	}
+	tr, ok := http.DefaultTransport.(*http.Transport)
+	if !ok {
+		return DefaultHTTPClient()
+	}
+	ct := tr.Clone()
+	if ct.TLSClientConfig == nil {
+		ct.TLSClientConfig = &tls.Config{MinVersion: tls.VersionTLS12}
+	} else if ct.TLSClientConfig.MinVersion == 0 {
+		ct.TLSClientConfig.MinVersion = tls.VersionTLS12
+	}
+	ct.TLSClientConfig.InsecureSkipVerify = true //nolint:gosec // ai.hellyer.test dev TLS only; see chatBaseSkipsTLSVerify
+	return &http.Client{Timeout: httpTimeout, Transport: ct}
+}
+
+func chatBaseSkipsTLSVerify(baseURL string) bool {
+	u, err := url.Parse(strings.TrimSpace(baseURL))
+	if err != nil || u.Hostname() == "" {
+		return false
+	}
+	return strings.EqualFold(u.Hostname(), "ai.hellyer.test")
 }
 
 // stderrCommitSpinner draws a simple ASCII spinner on stderr until stop is closed.

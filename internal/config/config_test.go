@@ -20,13 +20,13 @@ func TestLoad_defaultChatWhenNoUserKey(t *testing.T) {
 	if got.Backend != BackendOpenAIChat {
 		t.Fatalf("backend: got %v want chat", got.Backend)
 	}
-	if got.Chat.BaseURL != "https://openrouter.ai/api/v1" {
+	if got.Chat.BaseURL != DefaultHostedChatBaseURL {
 		t.Fatalf("BaseURL: got %q", got.Chat.BaseURL)
 	}
 	if got.Chat.APIKey != DefaultPublicAPIKey {
 		t.Fatalf("APIKey: got %q want DefaultPublicAPIKey", got.Chat.APIKey)
 	}
-	if got.Chat.Model != "google/gemma-3-4b-it" {
+	if got.Chat.Model != DefaultHostedModel {
 		t.Fatalf("Model: got %q", got.Chat.Model)
 	}
 	if got.Chat.Prompt == "" {
@@ -66,6 +66,9 @@ func TestLoad_customBaseWithDefaultPublicKey(t *testing.T) {
 	}
 	if got.Chat.APIKey != DefaultPublicAPIKey {
 		t.Fatalf("APIKey: got %q", got.Chat.APIKey)
+	}
+	if got.Chat.Model != DefaultHostedModel {
+		t.Fatalf("Model: got %q", got.Chat.Model)
 	}
 }
 

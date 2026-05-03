@@ -53,6 +53,9 @@ func main() {
 
 	cfg := config.Load()
 	httpClient := aiapi.DefaultHTTPClient()
+	if cfg.Backend == config.BackendOpenAIChat {
+		httpClient = aiapi.HTTPClientForChatBase(cfg.Chat.BaseURL)
+	}
 	var msg string
 	switch cfg.Backend {
 	case config.BackendPlain:

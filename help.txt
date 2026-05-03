@@ -14,20 +14,22 @@ OPTIONS
 
 ENVIRONMENT
   OpenAI-compatible chat (default)
-    POST JSON to /v1/chat/completions. A default public bearer is compiled in
-    when configured in the source tree; set GITMEH_API_KEY or OPENROUTER_API_KEY
-    to use your own credentials instead (same endpoint variables as below).
+    POST JSON to /v1/chat/completions. With no API key env vars, uses the
+    compiled-in hosted base URL, bearer token, and model (see internal/config).
 
-    GITMEH_API_BASE      Optional API root, no trailing slash (default:
-                         https://openrouter.ai/api/v1).
+    GITMEH_API_BASE      Optional API root, no trailing slash (overrides the
+                         default hosted base when no user API key is set).
     GITMEH_MODEL         Optional model id. OPENROUTER_MODEL is used if
-                         GITMEH_MODEL is unset (default: google/gemma-3-4b-it).
+                         GITMEH_MODEL is unset (overrides default hosted model
+                         when no user API key is set).
     GITMEH_PROMPT        Optional system instructions; unified diff is always sent
                          in a separate user message after your text.
 
-  User API key (overrides built-in default bearer)
+  User API key (OpenAI-compatible host, e.g. OpenRouter)
     GITMEH_API_KEY       Preferred bearer token for /v1/chat/completions.
     OPENROUTER_API_KEY   Alternative env name (same behavior if GITMEH_API_KEY unset).
+    GITMEH_API_BASE      Optional API root (default: https://openrouter.ai/api/v1).
+    GITMEH_MODEL         Optional model id (default with user key: google/gemma-3-4b-it).
 
   Legacy plain POST (opt-in)
     GITMEH_LEGACY_PLAIN  If true/1/yes: POST unified diff as text/plain to
