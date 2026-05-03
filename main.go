@@ -59,7 +59,7 @@ func main() {
 		fatalMsg("empty commit message from API")
 	}
 
-	final, proceed, err := reviewCommitMessage(msg)
+	final, proceed, err := reviewCommitMessage(msg, os.Stdin, os.Stdout)
 	if err != nil {
 		fatalErr(err)
 	}
@@ -76,14 +76,20 @@ func main() {
 // reviewCommitMessage loops until the user accepts (Y), aborts (n), or edits (e).
 // After edit, pressing Enter on the edited line submits that message (ok true).
 // ok is false when the user aborts without error.
-func reviewCommitMessage(suggested string) (final string, ok bool, err error) {
+// stdin and stdout are injected for tests (e.g. strings.NewReader, io.Discard).
+// If stdout is nil, os.Stdout is used.
+func reviewCommitMessage(suggested string, stdin io.Reader, stdout io.Writer) (final string, ok bool, err error) {
+	if stdout == nil {
+		stdout = os.Stdout
+	}
+
 	current := strings.TrimSpace(suggested)
-	rd := bufio.NewReader(os.Stdin)
+	rd := bufio.NewReader(stdin)
 
 	for {
-		fmt.Println("\nSuggested commit message:")
-		fmt.Println(current)
-		fmt.Print("\nAccept this message? [Y]es / [n]o / [e]dit: ")
+		fmt.Fprintln(stdout, "\nSuggested commit message:")
+		fmt.Fprintln(stdout, current)
+		fmt.Fprint(stdout, "\nAccept this message? [Y]es / [n]o / [e]dit: ")
 
 		line, err := rd.ReadString('\n')
 		if err != nil {
@@ -98,23 +104,23 @@ func reviewCommitMessage(suggested string) (final string, ok bool, err error) {
 		case ans == "" || ans == "y" || ans == "yes":
 			return current, true, nil
 		case ans == "n" || ans == "no":
-			fmt.Println("Aborted.")
+			fmt.Fprintln(stdout, "Aborted.")
 			return "", false, nil
 		case ans == "e" || ans == "edit":
-			fmt.Println()
-			edited, err := readCommitMessageInline(current, rd)
+			fmt.Fprintln(stdout)
+			edited, err := readCommitMessageInline(current, rd, stdout)
 			if err != nil {
 				return "", false, err
 			}
 			edited = strings.TrimSpace(edited)
 			if edited == "" {
-				fmt.Println("Commit message is empty; keeping previous text.")
+				fmt.Fprintln(stdout, "Commit message is empty; keeping previous text.")
 				continue
 			}
 			// Enter after editing submits this message; skip another Y/n/e round.
 			return edited, true, nil
 		default:
-			fmt.Println("Please enter y, n, or e (or press Enter for yes).")
+			fmt.Fprintln(stdout, "Please enter y, n, or e (or press Enter for yes).")
 		}
 	}
 }
@@ -122,11 +128,16 @@ func reviewCommitMessage(suggested string) (final string, ok bool, err error) {
 // readCommitMessageInline shows an editable single-line field prefilled with
 // initial; Enter submits the current line. Ctrl+C aborts with an error.
 // rd must be the same bufio.Reader used for the surrounding menu reads.
-func readCommitMessageInline(initial string, rd *bufio.Reader) (string, error) {
+// stdout is used for prompts (inject io.Discard in tests). If nil, os.Stdout.
+func readCommitMessageInline(initial string, rd *bufio.Reader, stdout io.Writer) (string, error) {
+	if stdout == nil {
+		stdout = os.Stdout
+	}
+
 	fd := int(os.Stdin.Fd())
 	if !term.IsTerminal(fd) {
-		fmt.Printf("%s%s\n", commitMsgPrompt, initial)
-		fmt.Print("(not a terminal — press Enter to keep, or type a new message)\n> ")
+		fmt.Fprintf(stdout, "%s%s\n", commitMsgPrompt, initial)
+		fmt.Fprint(stdout, "(not a terminal — press Enter to keep, or type a new message)\n> ")
 		line, err := rd.ReadString('\n')
 		if err != nil {
 			return "", err
@@ -156,9 +167,9 @@ func readCommitMessageInline(initial string, rd *bufio.Reader) (string, error) {
 		if pos < len(line) {
 			right = string(line[pos:])
 		}
-		fmt.Printf("\r\033[K%s%s%s", commitMsgPrompt, left, right)
+		fmt.Fprintf(stdout, "\r\033[K%s%s%s", commitMsgPrompt, left, right)
 		if n := len(right); n > 0 {
-			fmt.Printf("\033[%dD", n)
+			fmt.Fprintf(stdout, "\033[%dD", n)
 		}
 	}
 
@@ -168,7 +179,7 @@ func readCommitMessageInline(initial string, rd *bufio.Reader) (string, error) {
 		r, size, err := rd.ReadRune()
 		if err != nil {
 			if err == io.EOF {
-				fmt.Print("\r\n")
+				fmt.Fprint(stdout, "\r\n")
 				return "", io.EOF
 			}
 			return "", err
@@ -179,10 +190,10 @@ func readCommitMessageInline(initial string, rd *bufio.Reader) (string, error) {
 
 		switch r {
 		case '\r', '\n':
-			fmt.Print("\r\n")
+			fmt.Fprint(stdout, "\r\n")
 			return string(line), nil
 		case 3: // Ctrl+C
-			fmt.Print("\r\n")
+			fmt.Fprint(stdout, "\r\n")
 			return "", fmt.Errorf("interrupted")
 		case 127, '\b':
 			if pos > 0 {
