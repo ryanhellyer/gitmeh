@@ -12,6 +12,16 @@ Git meh API fixes required
 502 Bad Gateway | raw body: "OpenRouter error: Provider returned error"
 
 
+
+Ryans CVs on  master [✘»+] 
+❯ git meh
+502 Bad Gateway | raw body: "OpenRouter error: This endpoint's maximum context length is 131072 tokens. However, you requested about 618818 tokens (618818 of text input). Please reduce the length of either one, or use the context-compression plugin to compress your prompt automatically."
+
+Ryans CVs on  master [✘»+] 
+
+
+
+
 ❯ git meh
 
 Suggested commit message:
