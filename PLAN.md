@@ -33,16 +33,6 @@
   ────────────────────────────────────────
 
 
-
-  CLI conventions (note the caveat)
-
-  Today main prints errors and returns without setting a non-zero exit status. Many scripts expect failures to exit non-zero. Changing exit codes can
-  affect automation, so it is not purely internal—but aligning with common CLI expectations is a typical follow-up once you decide that’s acceptable.
-
-  ────────────────────────────────────────
-
-
-
   Engineering workflow
 
   CI: There is no .github/workflows (or similar) in the tree. A minimal pipeline—go test ./..., go vet, and optionally staticcheck / golangci-lint—catches
