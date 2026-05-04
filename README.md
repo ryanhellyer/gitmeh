@@ -2,80 +2,99 @@
 
 **AI-powered git commits for the terminally lazy.**
 
-**gitmeh** is a high-speed shortcut for your personal garbage repositories. It is designed specifically for those projects where quality does not matter and the only thing you care about is closing the laptop as fast as humanly possible.
+Stages everything (`git add --all`), AI-guesses a commit message, then shovels it to the cloud. Designed for personal garbage repos where quality does not matter and the only thing you care about is closing the laptop as fast as humanly possible.
 
-> **⚠️ WARNING:** Using this on a professional team project is a great way to get a stern talking-to from your engineering manager. This tool is reckless, indifferent, and definitely not "enterprise-ready."
-
-![gitmeh in action](images/screenshot.avif)
+> **⚠️** Not recommended for professional team projects. Using this at work is a great way to get a stern talking-to from your engineering manager.
 
 ### Why use this?
 
 Because writing thoughtful commit messages for your 14th unfinished side project is a waste of your precious nap time.
 
 * **Nuclear Staging:** It runs `git add --all` without asking. It stages your unfinished thoughts, your secrets, and that one large `test.mp4` you forgot was there.
-* **AI Guesswork:** By default the tool calls an **OpenAI-compatible** chat API at `https://ai.hellyer.test/v1` with the compiled-in public bearer and model (`internal/config`). Set `GITMEH_API_KEY` or `OPENROUTER_API_KEY` to use your own key (defaults switch to OpenRouter unless you set `GITMEH_API_BASE`).
+* **AI Guesswork:** Generates a commit message via an OpenAI-compatible chat API, with retry logic and configurable fallback models.
 * **Automatic Pushing:** Shovels your changes directly to the cloud so you can stop looking at the terminal.
-* **Built-in Judgement:** Features 40+ randomized status messages that mock your lack of professional standards.
 
-### Quick Start
-
-1. **Default (no env API key):** The tool POSTs JSON to **`https://ai.hellyer.test/v1/chat/completions`** with the compiled-in bearer and model (same as the sample `curl` in development). TLS verification is skipped only for host **`ai.hellyer.test`** (self-signed dev certs).
-
-2. **Optional — your own API key:** **Get an OpenRouter API key** from [OpenRouter](https://openrouter.ai/keys) and **dump it in your shell config** (`~/.bashrc` or `~/.zshrc`):
-
-   ```bash
-   export OPENROUTER_API_KEY='your_key_here'
-   ```
-
-   With that set, **`git meh`** uses OpenRouter (or set `GITMEH_API_BASE` to another OpenAI-compatible root). Optional: `OPENROUTER_MODEL` / `GITMEH_MODEL` (default on OpenRouter: `google/gemma-3-4b-it`). See [openrouter.ai/models](https://openrouter.ai/models).  
-   Optional: `GITMEH_PROMPT` to customize the system instructions (the unified diff is always a separate user message).
-
-3. **Install** the `git-meh` binary on your `PATH` (see below). Git discovers it as a subcommand, so you run **`git meh`** from any repository.
-
-### Install
-
-**macOS / Linux** — from the repository root:
+## Quick Start
 
 ```bash
-./install.sh
+# 1. Install
+make build && cp git-meh ~/.local/bin/           # from the repo root (requires Go)
+# Or: ./install.sh                              # uses a prebuilt binary
+
+# 2. Set up an API key (OpenCode Zen recommended)
+export GITMEH_API_BASE='https://opencode.ai/zen/v1'
+export GITMEH_API_KEY='your_zen_key'
+
+# 3. Run
+git meh
 ```
 
-That installs into `~/.local/bin` and updates your shell config so that directory is on your `PATH` when needed. Use a new terminal window, or run the `source …` command the script prints, then **`git meh`**.
+Git discovers the binary as a subcommand — works in any repository.
 
-**Windows:** Put **`git-meh.exe`** on your `PATH`, then run **`git meh`**.
+## Configuration
 
-### Requirements
+| Env var | Description | Default |
+|---|---|---|
+| `GITMEH_API_BASE` | API base URL | `https://ai.hellyer.test/v1` (built-in) |
+| `GITMEH_API_KEY` | API key | built-in public key |
+| `OPENROUTER_API_KEY` | Alternative to `GITMEH_API_KEY` | — |
+| `GITMEH_MODEL` | Model name | `gitmeh-hosted` or `google/gemma-3-4b-it` |
+| `OPENROUTER_MODEL` | Alternative to `GITMEH_MODEL` | — |
+| `GITMEH_PROMPT` | System prompt for the model | Conventional Commits prompt |
+| `GITMEH_FALLBACK_MODELS` | Comma-separated models to try if the primary fails | — |
+| `GITMEH_MAX_DIFF_BYTES` | Per-file diff truncation limit (0 = no limit) | `10000` (10 KB) |
 
-* **Git:** duh!
-* **Network:** the binary uses Go’s HTTP client (no shell `curl` required for the default path).
+**Auth priority**: `GITMEH_API_KEY` > `OPENROUTER_API_KEY` > built-in public key.
 
-### Build & Test
+**Fallback models**: If the primary model fails (timeout, 5xx, context-length exceeded), gitmeh retries up to 3 times with exponential backoff, then tries each fallback model in order. A 401 or other client error skips retries immediately.
 
-From the repository root, with Go installed:
+**Diff truncation**: When the staged diff exceeds `GITMEH_MAX_DIFF_BYTES`, gitmeh keeps all file headers and proportionally trims hunk content per file. Truncated sections are marked with `# hunk truncated`.
+
+## Developer Guide
+
+### Prerequisites
+
+- Go (see `go.mod` for version)
+- `golangci-lint` and `govulncheck` for linting (install via `go install`)
+
+### Commands
 
 ```bash
 make build       # build native binary
 make test        # run unit tests
-make lint        # run golangci-lint and govulncheck
-make cross       # cross-compile for Linux + macOS (amd64 + arm64)
+make lint        # run golangci-lint + govulncheck
+make cross       # cross-compile for Linux/macOS, amd64/arm64
 make clean       # remove built binaries
 make all         # lint + test + cross-compile
 
-# Or use Go directly:
-go test -tags=integration ./... -count=1   # integration tests
+go test -tags=integration ./... -count=1   # integration tests (require git)
 ```
 
-### Changelog
+### Project structure
 
-* **`3.0`:** Rewrite in Go; install the `git-meh` binary and run **`git meh`** (the old shell `gitmeh` command is gone).
-* **`3.x`:** Default path uses hosted OpenAI-compatible chat at `https://ai.hellyer.test/v1` with compiled-in public credentials; OpenRouter when you set an API key.
-* `2.1.0`: Default to the free hosted plain-text API so you can avoid another signup; OpenRouter when you set `OPENROUTER_API_KEY`; whine about the 1000 requests/day/IP limit on the free tier
-* `2.0.2`: Fixing default model documentation
-* `2.0.1`: Set default model to Google Gemma 3 4B as it is free
-* `2.0`: Conversion to use OpenRouter API and implementing ability to change model used and prompt
-* `1.0`: Initial implementation using Google Gemini
+```
+main.go              — entry point, CLI orchestration, user review prompt
+internal/
+  aiapi/             — AI API communication (chat, HTTP client, spinner)
+  config/            — env var parsing
+  git/               — git command wrappers (add, diff, commit, push)
+  version/           — version string
+```
 
-### Author
+### Architecture notes
+
+- The API call wraps a spinner goroutine for terminal feedback. Ctrl+C cancels the HTTP context, which immediately aborts the request and cleans up the terminal.
+- Model retries use exponential backoff (1s, 2s, 4s). Context-length errors and non-retryable status codes skip retries and advance to the next fallback model.
+- Diff truncation splits the unified diff at `diff --git` boundaries, preserves all file headers, and allocates the remaining byte budget proportionally by hunk size.
+
+## Changelog
+
+- **3.x:** Retry and fallback models, graceful Ctrl+C, diff truncation, CI linting/security scanning, Dependabot, Makefile, OpenCode Zen support
+- **3.0:** Rewrite in Go; run via `git meh`
+- **2.x:** OpenRouter and plain-text API versions
+- **1.0:** Initial Google Gemini implementation
+
+## Author
 
 **Ryan Hellyer** [ryan.hellyer.kiwi](https://ryan.hellyer.kiwi) | [GitHub Repo](https://github.com/ryanhellyer/gitmeh)
  
