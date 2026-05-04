@@ -2,17 +2,17 @@
 
 **AI-powered git commits for the terminally lazy.**
 
-Stages everything (`git add --all`), AI-guesses a commit message, then shovels it to the cloud. Designed for personal garbage repos where quality does not matter and the only thing you care about is closing the laptop as fast as humanly possible.
+Stages everything (`git add --all`), AI-guesses a commit message, then shovels it to the cloud. Designed for people who can't be bothered writing their own commit messages.
 
-> **⚠️** Not recommended for professional team projects. Using this at work is a great way to get a stern talking-to from your engineering manager.
+> **⚠️** Probably fine for personal projects. Tread carefully on shared repos — know what you're staging before you let AI push it.
 
 ### Why use this?
 
-Because writing thoughtful commit messages for your 14th unfinished side project is a waste of your precious nap time.
+Because writing commit messages takes effort and you've got better things to do.
 
-* **Nuclear Staging:** It runs `git add --all` without asking. It stages your unfinished thoughts, your secrets, and that one large `test.mp4` you forgot was there.
+* **Automated Staging:** Runs `git add --all` so you don't have to think about what changed.
 * **AI Guesswork:** Generates a commit message via an OpenAI-compatible chat API, with retry logic and configurable fallback models.
-* **Automatic Pushing:** Shovels your changes directly to the cloud so you can stop looking at the terminal.
+* **Automatic Pushing:** Commits and pushes in one step.
 
 ### Default API service
 
