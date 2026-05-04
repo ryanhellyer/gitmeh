@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -21,6 +22,9 @@ const (
 	BackendOpenAIChat Backend = iota
 )
 
+// DefaultMaxDiffBytes is the default limit for staged diff size (100 KB).
+const DefaultMaxDiffBytes = 100_000
+
 // OpenAIChat holds settings for [BackendOpenAIChat].
 type OpenAIChat struct {
 	BaseURL        string
@@ -28,6 +32,7 @@ type OpenAIChat struct {
 	Model          string
 	Prompt         string
 	FallbackModels []string
+	MaxDiffBytes   int // max staged diff size before refusing; 0 = no limit
 }
 
 // App is resolved configuration from the environment.
@@ -81,6 +86,13 @@ func Load() App {
 		}
 	}
 
+	maxDiff := DefaultMaxDiffBytes
+	if raw := strings.TrimSpace(os.Getenv("GITMEH_MAX_DIFF_BYTES")); raw != "" {
+		if v, err := strconv.Atoi(raw); err == nil && v >= 0 {
+			maxDiff = v
+		}
+	}
+
 	var apiKey string
 	if userKey != "" {
 		apiKey = userKey
@@ -108,6 +120,7 @@ func Load() App {
 			Model:          model,
 			Prompt:         prompt,
 			FallbackModels: fallbackModels,
+			MaxDiffBytes:   maxDiff,
 		},
 	}
 }
