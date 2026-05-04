@@ -1,7 +1,7 @@
 gitmeh — stage, suggest a commit message, then commit and push
 
 USAGE
-  gitmeh [-h | --help] [-v | --version]
+  gitmeh [-h] [-v]
 
 DESCRIPTION
   Stages all changes (git add --all), sends the staged diff to a remote service
@@ -9,8 +9,8 @@ DESCRIPTION
   message before running git commit and git push origin HEAD (current branch).
 
 OPTIONS
-  -h, --help       Show this help and exit.
-  -v, --version    Print the program name and version, then exit.
+  -h               Show this help and exit.
+  -v               Print the program name and version, then exit.
 
 ENVIRONMENT
   OpenAI-compatible chat (default)

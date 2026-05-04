@@ -34,10 +34,10 @@ const commitMsgPrompt = "Commit message: "
 func main() {
 	for _, arg := range os.Args[1:] {
 		switch arg {
-		case "-h", "--help":
+		case "-h":
 			fmt.Print(helpText)
 			return
-		case "-v", "--version":
+		case "-v":
 			fmt.Printf("gitmeh %s\n", version.Version)
 			return
 		}
