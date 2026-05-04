@@ -146,7 +146,7 @@ func doChatRequest(client *http.Client, baseURL, apiKey, model, systemPrompt, di
 			{Role: "user", Content: "Unified diff:\n" + diff},
 		},
 		Temperature: 0.3,
-		MaxTokens:   512,
+		MaxTokens:   4096,
 	}
 	rawBody, err := json.Marshal(body)
 	if err != nil {
@@ -170,7 +170,7 @@ func doChatRequest(client *http.Client, baseURL, apiKey, model, systemPrompt, di
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {

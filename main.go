@@ -86,6 +86,7 @@ func main() {
 // ok is false when the user aborts without error.
 // stdin and stdout are injected for tests (e.g. strings.NewReader, io.Discard).
 // If stdout is nil, os.Stdout is used.
+//nolint:errcheck // UI output writes — safe to ignore
 func reviewCommitMessage(suggested string, stdin io.Reader, stdout io.Writer) (final string, ok bool, err error) {
 	if stdout == nil {
 		stdout = os.Stdout
@@ -151,6 +152,7 @@ func stdinTerminalFD(stdin io.Reader) (fd int, ok bool) {
 // initial; Enter submits the current line. Ctrl+C aborts with an error.
 // stdin must be the same reader rd wraps (e.g. bufio.NewReader(stdin)).
 // stdout is used for prompts (inject io.Discard in tests). If nil, os.Stdout.
+//nolint:errcheck // UI output writes — safe to ignore
 func readCommitMessageInline(initial string, stdin io.Reader, rd *bufio.Reader, stdout io.Writer) (string, error) {
 	if stdout == nil {
 		stdout = os.Stdout

@@ -9,7 +9,7 @@ import (
 // Override with GITMEH_API_BASE / GITMEH_MODEL / GITMEH_API_KEY or OPENROUTER_API_KEY.
 const (
 	DefaultHostedChatBaseURL = "https://ai.hellyer.test/v1"
-	DefaultPublicAPIKey      = "gitmeh-public-client"
+	DefaultPublicAPIKey      = "gitmeh-public-client" //nolint:gosec // public key for the default hosted endpoint
 	DefaultHostedModel       = "gitmeh-hosted"
 )
 

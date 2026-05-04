@@ -1,6 +1,6 @@
 module gitmeh
 
-go 1.25.9
+go 1.24.0
 
 require golang.org/x/term v0.29.0
 

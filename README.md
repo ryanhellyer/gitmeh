@@ -99,7 +99,6 @@ That installs into `~/.local/bin` and updates your shell config so that director
 From the repository root, with Go installed:
 
 ```bash
-go vet ./...
 go test ./... -count=1
 ```
 
@@ -109,6 +108,27 @@ Integration tests use `git`. They need **`git` installed on your system **
 
 ```bash
 go test -tags=integration ./... -count=1
+```
+
+### Lint & Security
+
+Run all linters (staticcheck, gosec, govet, errcheck, etc.):
+
+```bash
+golangci-lint run ./...
+```
+
+Scan for known vulnerability dependencies:
+
+```bash
+govulncheck ./...
+```
+
+Install the tools if missing (ensure `$(go env GOPATH)/bin` is on your `PATH`):
+
+```bash
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+go install golang.org/x/vuln/cmd/govulncheck@latest
 ```
 
 ### Changelog

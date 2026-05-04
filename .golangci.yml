@@ -1,0 +1,17 @@
+linters:
+  enable:
+    - staticcheck
+    - gosec
+    - govet
+    - errcheck
+    - ineffassign
+    - unused
+    - misspell
+
+run:
+  timeout: 5m
+  tests: true
+
+issues:
+  exclude-use-default: false
+

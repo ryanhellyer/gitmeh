@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-const httpTimeout = 20 * time.Second
+const httpTimeout = 60 * time.Second
 
 // DefaultHTTPClient returns an [http.Client] configured with the timeout used
 // for gitmeh's API requests.

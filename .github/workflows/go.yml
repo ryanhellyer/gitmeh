@@ -16,11 +16,23 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Vet
-        run: go vet ./...
+      - name: Lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.64
+
+      - name: Vulnerability scan
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest && govulncheck ./...
 
       - name: Test
-        run: go test ./... -count=1
+        run: go test ./... -count=1 -coverprofile=coverage.out
 
       - name: Test (integration)
         run: go test -tags=integration ./... -count=1
+
+      - name: Upload coverage
+        if: success()
+        uses: codecov/codecov-action@v5
+        with:
+          file: coverage.out
+          fail_ci_if_error: false
