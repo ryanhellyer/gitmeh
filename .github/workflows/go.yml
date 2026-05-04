@@ -1,6 +1,7 @@
 name: Go
 
 on:
+  workflow_dispatch:
   push:
     branches: [master, main]
   pull_request:
@@ -17,9 +18,9 @@ jobs:
           go-version-file: go.mod
 
       - name: Lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v7
         with:
-          version: v1.64
+          version: v2.12.1
 
       - name: Vulnerability scan
         run: go install golang.org/x/vuln/cmd/govulncheck@latest && govulncheck ./...

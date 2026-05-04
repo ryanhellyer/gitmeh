@@ -1,3 +1,4 @@
+version: "2"
 linters:
   enable:
     - staticcheck
@@ -7,11 +8,9 @@ linters:
     - ineffassign
     - unused
     - misspell
-
+  exclusions:
+    presets: []
 run:
   timeout: 5m
   tests: true
-
-issues:
-  exclude-use-default: false
 

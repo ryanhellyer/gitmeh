@@ -120,13 +120,13 @@ func reviewCommitMessage(suggested string, stdin io.Reader, stdout io.Writer) (f
 		}
 
 		ans := strings.ToLower(strings.TrimSpace(line))
-		switch {
-		case ans == "" || ans == "y" || ans == "yes":
+		switch ans {
+		case "", "y", "yes":
 			return current, true, nil
-		case ans == "n" || ans == "no":
+		case "n", "no":
 			fmt.Fprintln(stdout, "Aborted.")
 			return "", false, nil
-		case ans == "e" || ans == "edit":
+		case "e", "edit":
 			fmt.Fprintln(stdout)
 			edited, err := readCommitMessageInline(current, stdin, rd, stdout)
 			if err != nil {
@@ -137,7 +137,6 @@ func reviewCommitMessage(suggested string, stdin io.Reader, stdout io.Writer) (f
 				fmt.Fprintln(stdout, "Commit message is empty; keeping previous text.")
 				continue
 			}
-			// Enter after editing submits this message; skip another Y/n/e round.
 			return edited, true, nil
 		default:
 			fmt.Fprintln(stdout, "Please enter y, n, or e (or press Enter for yes).")

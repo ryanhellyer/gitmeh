@@ -8,8 +8,8 @@ import (
 	"strings"
 )
 
-func runCommand(name string, args ...string) error {
-	cmd := exec.Command(name, args...)
+func runGit(args ...string) error {
+	cmd := exec.Command("git", args...) //nolint:gosec
 
 	cmd.Stdout = os.Stdout
 
