@@ -30,7 +30,7 @@ select_artifact_name() {
 	*)
 		echo "error: unsupported system (${os} ${arch})." >&2
 		echo "       Supported: Linux x86_64 / arm64, macOS x86_64 / arm64." >&2
-		echo "       Run compile.sh on a supported host to build the matching binary." >&2
+		echo "       Run 'make cross' on a supported host to build the matching binary." >&2
 		exit 1
 		;;
 	esac
@@ -122,7 +122,7 @@ src="${script_dir}/${artifact}"
 if [[ ! -f "${src}" ]]; then
 	echo "error: ${artifact} not found next to install.sh" >&2
 	echo "       Expected: ${src}" >&2
-	echo "       Run ./compile.sh in the repository root, then try again." >&2
+		echo "       Run 'make cross' in the repository root, then try again." >&2
 	exit 1
 fi
 

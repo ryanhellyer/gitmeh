@@ -109,41 +109,20 @@ That installs into `~/.local/bin` and updates your shell config so that director
 * **Git:** duh!
 * **Network:** the binary uses Go’s HTTP client (no shell `curl` required for the default path).
 
-### Unit Tests
+### Build & Test
 
 From the repository root, with Go installed:
 
 ```bash
-go test ./... -count=1
-```
+make build       # build native binary
+make test        # run unit tests
+make lint        # run golangci-lint and govulncheck
+make cross       # cross-compile for Linux + macOS (amd64 + arm64)
+make clean       # remove built binaries
+make all         # lint + test + cross-compile
 
-### Integration Tests
-
-Integration tests use `git`. They need **`git` installed on your system **
-
-```bash
-go test -tags=integration ./... -count=1
-```
-
-### Lint & Security
-
-Run all linters (staticcheck, gosec, govet, errcheck, etc.):
-
-```bash
-golangci-lint run ./...
-```
-
-Scan for known vulnerability dependencies:
-
-```bash
-govulncheck ./...
-```
-
-Install the tools if missing (ensure `$(go env GOPATH)/bin` is on your `PATH`):
-
-```bash
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-go install golang.org/x/vuln/cmd/govulncheck@latest
+# Or use Go directly:
+go test -tags=integration ./... -count=1   # integration tests
 ```
 
 ### Changelog
