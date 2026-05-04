@@ -22,8 +22,7 @@ const (
 	BackendOpenAIChat Backend = iota
 )
 
-// DefaultMaxDiffBytes is the default limit for staged diff size (100 KB).
-const DefaultMaxDiffBytes = 100_000
+const DefaultMaxDiffBytes = 10_000
 
 // OpenAIChat holds settings for [BackendOpenAIChat].
 type OpenAIChat struct {
