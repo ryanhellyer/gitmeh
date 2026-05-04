@@ -14,6 +14,14 @@ Because writing thoughtful commit messages for your 14th unfinished side project
 * **AI Guesswork:** Generates a commit message via an OpenAI-compatible chat API, with retry logic and configurable fallback models.
 * **Automatic Pushing:** Shovels your changes directly to the cloud so you can stop looking at the terminal.
 
+### Default API service
+
+If you don't set `GITMEH_API_KEY` or `OPENROUTER_API_KEY`, gitmeh uses a **free hosted API** at `https://ai.hellyer.test/`, run by the author (Ryan Hellyer). The backend automatically selects whichever AI model is working best and cheapest at the time, so models will vary between requests without warning.
+
+**Your staged diff (code) is sent to this server** and then forwarded to whichever model the backend picks. If you are not comfortable sharing your code with me (Ryan) or with the random third-party model I route it through, **do not use the default service**. Set `GITMEH_API_BASE`, `GITMEH_API_KEY`, `GITMEH_MODEL` etc. to use your own AI provider instead.
+
+I have zero interest in your code and no intention of looking at it, but it will be processed through my server and the model provider's servers.
+
 ## Quick Start
 
 ```bash
