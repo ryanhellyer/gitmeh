@@ -79,7 +79,7 @@ Because writing thoughtful commit messages for your 14th unfinished side project
 
 ### Quick Start
 
-1. **Default (no env API key):** The tool POSTs JSON to **`https://ai.hellyer.test/v1/chat/completions`** with the compiled-in bearer and model (same as the sample `curl` in development). TLS verification is skipped only for host **`ai.hellyer.test`** (self-signed dev certs). To smoke-test another host, run `./scripts/verify-openai-chat.sh` with **`OPENROUTER_API_KEY`** or **`GITMEH_VERIFY_API_KEY`** set (expect HTTP 200 and a non-empty commit line).
+1. **Default (no env API key):** The tool POSTs JSON to **`https://ai.hellyer.test/v1/chat/completions`** with the compiled-in bearer and model (same as the sample `curl` in development). TLS verification is skipped only for host **`ai.hellyer.test`** (self-signed dev certs).
 
 2. **Optional — your own API key:** **Get an OpenRouter API key** from [OpenRouter](https://openrouter.ai/keys) and **dump it in your shell config** (`~/.bashrc` or `~/.zshrc`):
 
