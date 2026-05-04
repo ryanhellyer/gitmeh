@@ -1,144 +1,87 @@
 #!/usr/bin/env bash
-# Install git-meh next to this script into ~/.local/bin as git-meh (for "git meh").
-# Picks the prebuilt binary from compile.sh (git-meh-<os>-<arch>) for this machine.
+# Install git-meh from the latest GitHub release into ~/.local/bin.
 set -euo pipefail
 
-script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+REPO="ryanhellyer/gitmeh"
 dest_dir="${HOME}/.local/bin"
 dest="${dest_dir}/git-meh"
 marker='# git-meh PATH (added by install.sh)'
 path_line='export PATH="${HOME}/.local/bin:${PATH}"'
 
-# Basename of the binary produced by compile.sh for this OS and CPU.
 select_artifact_name() {
 	local os arch
 	os=$(uname -s)
 	arch=$(uname -m)
 	case "${os}:${arch}" in
-	Linux:x86_64)
-		echo "git-meh-linux-x86_64"
-		;;
-	Linux:aarch64|Linux:arm64)
-		echo "git-meh-linux-arm64"
-		;;
-	Darwin:x86_64)
-		echo "git-meh-macos-x86_64"
-		;;
-	Darwin:arm64)
-		echo "git-meh-macos-arm64"
-		;;
+	Linux:x86_64)  echo "git-meh-linux-x86_64"  ;;
+	Linux:aarch64|Linux:arm64) echo "git-meh-linux-arm64" ;;
+	Darwin:x86_64) echo "git-meh-macos-x86_64"  ;;
+	Darwin:arm64)  echo "git-meh-macos-arm64"   ;;
 	*)
 		echo "error: unsupported system (${os} ${arch})." >&2
 		echo "       Supported: Linux x86_64 / arm64, macOS x86_64 / arm64." >&2
-		echo "       Run 'make cross' on a supported host to build the matching binary." >&2
 		exit 1
 		;;
 	esac
 }
 
-# Refuse to install a Linux build on macOS (or the reverse).
-verify_os_matches_artifact() {
-	local artifact=$1
-	local os
-	os=$(uname -s)
-	case "${artifact}" in
-	git-meh-linux-*)
-		if [[ "${os}" != Linux ]]; then
-			echo "error: ${artifact} is a Linux binary; this system is ${os}." >&2
-			exit 1
-		fi
-		;;
-	git-meh-macos-*)
-		if [[ "${os}" != Darwin ]]; then
-			echo "error: ${artifact} is a macOS binary; this system is ${os}." >&2
-			exit 1
-		fi
-		;;
-	esac
+download() {
+	local url=$1 dst=$2
+	if command -v curl >/dev/null 2>&1; then
+		curl -fsSL -o "${dst}" "${url}"
+	elif command -v wget >/dev/null 2>&1; then
+		wget -qO "${dst}" "${url}"
+	else
+		echo "error: need curl or wget to download the binary." >&2
+		exit 1
+	fi
 }
 
-# Best-effort check that the file looks like the right executable type.
 verify_binary_kind() {
-	local src=$1
-	local artifact=$2
-
+	local src=$1 artifact=$2
 	if ! command -v file >/dev/null 2>&1; then
 		return 0
 	fi
-
 	local desc
 	desc=$(file -b "${src}" 2>/dev/null || true)
 	if [[ -z "${desc}" ]]; then
 		return 0
 	fi
-
 	case "${artifact}" in
 	git-meh-linux-x86_64)
-		echo "${desc}" | grep -qi 'ELF' || {
-			echo "error: ${artifact} should be an ELF binary; file(1) says: ${desc}" >&2
-			exit 1
-		}
-		echo "${desc}" | grep -qiE 'x86-64|x86_64' || {
-			echo "error: ${artifact} should be x86-64; file(1) says: ${desc}" >&2
-			exit 1
-		}
+		echo "${desc}" | grep -qi 'ELF' || { echo "error: ${artifact} should be an ELF binary; file(1) says: ${desc}" >&2; exit 1; }
+		echo "${desc}" | grep -qiE 'x86-64|x86_64' || { echo "error: ${artifact} should be x86-64; file(1) says: ${desc}" >&2; exit 1; }
 		;;
 	git-meh-linux-arm64)
-		echo "${desc}" | grep -qi 'ELF' || {
-			echo "error: ${artifact} should be an ELF binary; file(1) says: ${desc}" >&2
-			exit 1
-		}
-		echo "${desc}" | grep -qiE 'aarch64|ARM aarch64|ARM, EABI64' || {
-			echo "error: ${artifact} should be ARM aarch64; file(1) says: ${desc}" >&2
-			exit 1
-		}
+		echo "${desc}" | grep -qi 'ELF' || { echo "error: ${artifact} should be an ELF binary; file(1) says: ${desc}" >&2; exit 1; }
+		echo "${desc}" | grep -qiE 'aarch64|ARM aarch64|ARM, EABI64' || { echo "error: ${artifact} should be ARM aarch64; file(1) says: ${desc}" >&2; exit 1; }
 		;;
 	git-meh-macos-x86_64)
-		echo "${desc}" | grep -qi 'Mach-O' || {
-			echo "error: ${artifact} should be a Mach-O binary; file(1) says: ${desc}" >&2
-			exit 1
-		}
-		echo "${desc}" | grep -qi 'x86_64' || {
-			echo "error: ${artifact} should be x86_64; file(1) says: ${desc}" >&2
-			exit 1
-		}
+		echo "${desc}" | grep -qi 'Mach-O' || { echo "error: ${artifact} should be a Mach-O binary; file(1) says: ${desc}" >&2; exit 1; }
+		echo "${desc}" | grep -qi 'x86_64' || { echo "error: ${artifact} should be x86_64; file(1) says: ${desc}" >&2; exit 1; }
 		;;
 	git-meh-macos-arm64)
-		echo "${desc}" | grep -qi 'Mach-O' || {
-			echo "error: ${artifact} should be a Mach-O binary; file(1) says: ${desc}" >&2
-			exit 1
-		}
-		echo "${desc}" | grep -qi 'arm64' || {
-			echo "error: ${artifact} should be arm64; file(1) says: ${desc}" >&2
-			exit 1
-		}
+		echo "${desc}" | grep -qi 'Mach-O' || { echo "error: ${artifact} should be a Mach-O binary; file(1) says: ${desc}" >&2; exit 1; }
+		echo "${desc}" | grep -qi 'arm64' || { echo "error: ${artifact} should be arm64; file(1) says: ${desc}" >&2; exit 1; }
 		;;
 	esac
 }
 
 artifact=$(select_artifact_name)
-src="${script_dir}/${artifact}"
+tmp=$(mktemp)
+trap 'rm -f "${tmp}"' EXIT
 
-if [[ ! -f "${src}" ]]; then
-	echo "error: ${artifact} not found next to install.sh" >&2
-	echo "       Expected: ${src}" >&2
-		echo "       Run 'make cross' in the repository root, then try again." >&2
-	exit 1
-fi
+url="https://github.com/${REPO}/releases/latest/download/${artifact}"
+echo "Downloading ${artifact} from GitHub releases ..."
+download "${url}" "${tmp}"
 
-if [[ ! -r "${src}" ]]; then
-	echo "error: cannot read ${src}" >&2
-	exit 1
-fi
-
-verify_os_matches_artifact "${artifact}"
-verify_binary_kind "${src}" "${artifact}"
+verify_binary_kind "${tmp}" "${artifact}"
 
 mkdir -p "${dest_dir}"
-install -m 0755 "${src}" "${dest}"
+install -m 0755 "${tmp}" "${dest}"
 ln -sf git-meh "${dest_dir}/gitmeh"
 
-echo "Installed: ${dest}  (from ${artifact})"
+echo "Installed: ${dest}"
 echo "Symlink:   ${dest_dir}/gitmeh -> git-meh"
 
 path_has_local_bin() {
