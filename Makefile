@@ -2,6 +2,7 @@
 
 build:
 	go build -o git-meh .
+	ln -sf git-meh gitmeh
 
 test:
 	go test ./... -count=1
@@ -11,7 +12,7 @@ lint:
 	govulncheck ./...
 
 clean:
-	rm -f git-meh git-meh-linux-* git-meh-macos-*
+	rm -f git-meh gitmeh git-meh.exe gitmeh.exe git-meh-linux-* git-meh-macos-*
 
 cross: clean
 	CGO_ENABLED=0 GOOS=linux  GOARCH=amd64 go build -o git-meh-linux-x86_64      .

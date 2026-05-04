@@ -136,8 +136,10 @@ verify_binary_kind "${src}" "${artifact}"
 
 mkdir -p "${dest_dir}"
 install -m 0755 "${src}" "${dest}"
+ln -sf git-meh "${dest_dir}/gitmeh"
 
 echo "Installed: ${dest}  (from ${artifact})"
+echo "Symlink:   ${dest_dir}/gitmeh -> git-meh"
 
 path_has_local_bin() {
 	case ":${PATH}:" in
@@ -186,13 +188,13 @@ else
 	existing=""
 	if existing=$(already_marked); then
 		echo "Run:  source ${existing}"
-		echo "Then: git meh"
+		echo "Then: git meh   (or just: gitmeh)"
 	else
 		rc=$(choose_rc)
 		touch "${rc}"
 		printf '\n%s\n%s\n' "${marker}" "${path_line}" >>"${rc}"
 		echo "Added ~/.local/bin to PATH in ${rc}"
 		echo "Run:  source ${rc}"
-		echo "Then: git meh"
+		echo "Then: git meh   (or just: gitmeh)"
 	fi
 fi
