@@ -42,7 +42,7 @@ type App struct {
 const defaultOpenAIBase = "https://openrouter.ai/api/v1"
 const defaultModel = "google/gemma-3-4b-it"
 
-const defaultCommitPrompt = `Write a single concise Git commit message using Conventional Commits format (e.g., feat: add feature, fix: resolve bug) for the following unified diff. Provide the subject line and an optional body if necessary. Respond with only the raw commit message text. No markdown, no quotes, and no preamble.`
+const defaultCommitPrompt = `Write a Git commit message (Conventional Commits format) for this diff. Reply with ONLY the commit message. No analysis, no explanation, no preamble. Start with a verb. No numbering. No bullet points.`
 
 // Load reads environment variables.
 //
