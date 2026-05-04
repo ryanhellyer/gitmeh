@@ -2,7 +2,6 @@ package git
 
 import (
 	"errors"
-	"fmt"
 	"os/exec"
 	"strings"
 )
@@ -155,12 +154,3 @@ func truncateByFile(diff string, maxBytes int) string {
 	return buf.String()
 }
 
-func formatBytes(b int) string {
-	if b < 1024 {
-		return fmt.Sprintf("%d B", b)
-	}
-	if b < 1024*1024 {
-		return fmt.Sprintf("%.1f KB", float64(b)/1024)
-	}
-	return fmt.Sprintf("%.1f MB", float64(b)/(1024*1024))
-}
