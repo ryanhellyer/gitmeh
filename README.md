@@ -3,6 +3,16 @@
 #####################################
 #####################################
 
+
+export GITMEH_API_BASE='https://opencode.ai/zen/v1';
+export GITMEH_PROMPT='Write a Git commit message (Conventional Commits format) for this diff. Reply with ONLY the commit message. No analysis, no explanation, no preamble. Start with a verb. No numbering. No bullet points.';
+export GITMEH_FALLBACK_MODELS="hy3-preview-free, big-pickle, minimax-m2.5-free, nemotron-3-super-free";
+export GITMEH_MODEL='kimi-k2.5';
+
+
+
+
+
 Git meh API fixes required
 
 ** The API should detect errors, and if it finds an error from the API, it should immediately attempt to use another Open Router model. If it does need to serve an error after that, then it should be a consistent error that git meh can always recognise and serve a relevant error message for. **
