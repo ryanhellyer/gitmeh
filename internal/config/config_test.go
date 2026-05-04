@@ -69,6 +69,7 @@ func TestLoad_customBaseWithDefaultPublicKey(t *testing.T) {
 }
 
 func TestLoad_chatOpenRouterKey(t *testing.T) {
+	// OPENROUTER_API_KEY is a legacy alias for GITMEH_API_KEY.
 	t.Setenv("GITMEH_API_KEY", "")
 	t.Setenv("OPENROUTER_API_KEY", "sk-test")
 	t.Setenv("GITMEH_API_BASE", "")
@@ -117,6 +118,7 @@ func TestLoad_chatGITMEHKeyOverridesBase(t *testing.T) {
 }
 
 func TestLoad_chatGITMEHKeyPreferredOverOpenRouter(t *testing.T) {
+	// GITMEH_API_KEY takes precedence over the legacy OPENROUTER_API_KEY alias.
 	t.Setenv("GITMEH_API_KEY", "primary")
 	t.Setenv("OPENROUTER_API_KEY", "secondary")
 	t.Setenv("GITMEH_API_BASE", "")

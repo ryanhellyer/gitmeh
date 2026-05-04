@@ -7,7 +7,6 @@ import (
 )
 
 // Defaults for the built-in hosted OpenAI-compatible API (no user API key).
-// Override with GITMEH_API_BASE / GITMEH_MODEL / GITMEH_API_KEY or OPENROUTER_API_KEY.
 const (
 	DefaultHostedChatBaseURL = "https://ai.hellyer.test/v1"
 	DefaultPublicAPIKey      = "gitmeh-public-client" //nolint:gosec // public key for the default hosted endpoint
@@ -47,18 +46,22 @@ const defaultCommitPrompt = `Write a single concise Git commit message using Con
 
 // Load reads environment variables.
 //
-// With GITMEH_API_KEY or OPENROUTER_API_KEY: GITMEH_API_BASE defaults to OpenRouter,
-// model to [defaultModel] unless GITMEH_MODEL / OPENROUTER_MODEL is set.
+// With GITMEH_API_KEY set: GITMEH_API_BASE defaults to OpenRouter, model to
+// [defaultModel] unless GITMEH_MODEL is set.
 //
-// With neither key set: [DefaultHostedChatBaseURL], [DefaultPublicAPIKey], and
-// [DefaultHostedModel] unless GITMEH_API_BASE and/or GITMEH_MODEL / OPENROUTER_MODEL
-// override the URL or model.
+// With no key set: [DefaultHostedChatBaseURL], [DefaultPublicAPIKey], and
+// [DefaultHostedModel] unless GITMEH_API_BASE and/or GITMEH_MODEL override the
+// URL or model.
 //
 // GITMEH_PROMPT optionally overrides the system instructions.
+//
+// OPENROUTER_API_KEY and OPENROUTER_MODEL are also accepted as legacy aliases
+// for GITMEH_API_KEY and GITMEH_MODEL (from earlier versions that only
+// supported OpenRouter).
 func Load() App {
 	userKey := strings.TrimSpace(os.Getenv("GITMEH_API_KEY"))
 	if userKey == "" {
-		userKey = strings.TrimSpace(os.Getenv("OPENROUTER_API_KEY"))
+		userKey = strings.TrimSpace(os.Getenv("OPENROUTER_API_KEY")) // legacy alias
 	}
 
 	prompt := strings.TrimSpace(os.Getenv("GITMEH_PROMPT"))
@@ -71,7 +74,7 @@ func Load() App {
 
 	model := strings.TrimSpace(os.Getenv("GITMEH_MODEL"))
 	if model == "" {
-		model = strings.TrimSpace(os.Getenv("OPENROUTER_MODEL"))
+		model = strings.TrimSpace(os.Getenv("OPENROUTER_MODEL")) // legacy alias
 	}
 
 	fallbackRaw := strings.TrimSpace(os.Getenv("GITMEH_FALLBACK_MODELS"))

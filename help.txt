@@ -26,10 +26,11 @@ ENVIRONMENT
                          in a separate user message after your text.
 
   User API key (OpenAI-compatible host, e.g. OpenRouter)
-    GITMEH_API_KEY       Preferred bearer token for /v1/chat/completions.
-    OPENROUTER_API_KEY   Alternative env name (same behavior if GITMEH_API_KEY unset).
+    GITMEH_API_KEY       Bearer token for /v1/chat/completions.
     GITMEH_API_BASE      Optional API root (default: https://openrouter.ai/api/v1).
     GITMEH_MODEL         Optional model id (default with user key: google/gemma-3-4b-it).
+    OPENROUTER_API_KEY   Legacy alias for GITMEH_API_KEY (from earlier versions).
+    OPENROUTER_MODEL     Legacy alias for GITMEH_MODEL (from earlier versions).
 
 SEE ALSO
   git-add(1), git-commit(1), git-push(1)

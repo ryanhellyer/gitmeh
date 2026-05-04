@@ -16,7 +16,7 @@ Because writing thoughtful commit messages for your 14th unfinished side project
 
 ### Default API service
 
-If you don't set `GITMEH_API_KEY` or `OPENROUTER_API_KEY`, gitmeh uses a **free hosted API** at `https://ai.hellyer.test/`, run by the author (Ryan Hellyer). The backend automatically selects whichever AI model is working best and cheapest at the time, so models will vary between requests without warning.
+If you don't set `GITMEH_API_KEY`, gitmeh uses a **free hosted API** at `https://ai.hellyer.test/`, run by the author (Ryan Hellyer). The backend automatically selects whichever AI model is working best and cheapest at the time, so models will vary between requests without warning.
 
 **Your staged diff (code) is sent to this server** and then forwarded to whichever model the backend picks. If you are not comfortable sharing your code with me (Ryan) or with the random third-party model I route it through, **do not use the default service**. Set `GITMEH_API_BASE`, `GITMEH_API_KEY`, `GITMEH_MODEL` etc. to use your own AI provider instead.
 
@@ -45,14 +45,12 @@ Git discovers the binary as a subcommand — works in any repository.
 |---|---|---|
 | `GITMEH_API_BASE` | API base URL | `https://ai.hellyer.test/v1` (built-in) |
 | `GITMEH_API_KEY` | API key | built-in public key |
-| `OPENROUTER_API_KEY` | Alternative to `GITMEH_API_KEY` | — |
 | `GITMEH_MODEL` | Model name | `gitmeh-hosted` or `google/gemma-3-4b-it` |
-| `OPENROUTER_MODEL` | Alternative to `GITMEH_MODEL` | — |
 | `GITMEH_PROMPT` | System prompt for the model | Conventional Commits prompt |
 | `GITMEH_FALLBACK_MODELS` | Comma-separated models to try if the primary fails | — |
 | `GITMEH_MAX_DIFF_BYTES` | Per-file diff truncation limit (0 = no limit) | `10000` (10 KB) |
 
-**Auth priority**: `GITMEH_API_KEY` > `OPENROUTER_API_KEY` > built-in public key.
+**Auth priority**: `GITMEH_API_KEY` > built-in public key.
 
 **Fallback models**: If the primary model fails (timeout, 5xx, context-length exceeded), gitmeh retries up to 3 times with exponential backoff, then tries each fallback model in order. A 401 or other client error skips retries immediately.
 
@@ -97,7 +95,7 @@ internal/
 
 ## Changelog
 
-- **3.x:** Retry and fallback models, graceful Ctrl+C, diff truncation, CI linting/security scanning, Dependabot, Makefile, OpenCode Zen support
+- **3.x:** Retry and fallback models, graceful Ctrl+C, diff truncation, CI linting/security scanning, Dependabot, Makefile, support for OpenAI compatible APIs
 - **3.0:** Rewrite in Go; run via `git meh`
 - **2.x:** OpenRouter and plain-text API versions
 - **1.0:** Initial Google Gemini implementation
