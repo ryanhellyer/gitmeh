@@ -1,5 +1,10 @@
 # gitmeh ¯\_(ツ)_/¯
 
+
+Adding a --pick argument so that files to stage can be manually chosen
+$ git meh --pick
+
+
 #####################################
 #####################################
 

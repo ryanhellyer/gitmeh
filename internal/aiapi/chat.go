@@ -2,6 +2,7 @@ package aiapi
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -58,7 +59,7 @@ type apiErrorBody struct {
 // are tried in order. Each model is retried up to [maxRetriesPerModel] times
 // with exponential backoff for transient errors before moving to the next
 // fallback.
-func CommitMessageOpenAIChat(client *http.Client, p OpenAIChatParams, diff string) (string, error) {
+func CommitMessageOpenAIChat(ctx context.Context, client *http.Client, p OpenAIChatParams, diff string) (string, error) {
 	if client == nil {
 		return "", fmt.Errorf("http client is nil")
 	}
@@ -81,10 +82,10 @@ func CommitMessageOpenAIChat(client *http.Client, p OpenAIChatParams, diff strin
 
 	models := buildModelList(model, p.FallbackModels)
 
-	return withGeneratingCommitSpinner(func() (string, error) {
+		return withGeneratingCommitSpinner(func() (string, error) {
 		var lastErr error
 		for i, m := range models {
-			result, err := tryModelWithRetry(client, base, key, m, sys, diff)
+			result, err := tryModelWithRetry(ctx, client, base, key, m, sys, diff)
 			if err == nil {
 				return result, nil
 			}
@@ -112,13 +113,20 @@ func buildModelList(primary string, fallbacks []string) []string {
 	return models
 }
 
-func tryModelWithRetry(client *http.Client, baseURL, apiKey, model, systemPrompt, diff string) (string, error) {
+func tryModelWithRetry(ctx context.Context, client *http.Client, baseURL, apiKey, model, systemPrompt, diff string) (string, error) {
 	var lastErr error
 	for attempt := 0; attempt < maxRetriesPerModel; attempt++ {
 		if attempt > 0 {
-			time.Sleep(time.Duration(1<<(attempt-1)) * time.Second)
+			backoff := time.Duration(1<<(attempt-1)) * time.Second
+			timer := time.NewTimer(backoff)
+			select {
+			case <-ctx.Done():
+				timer.Stop()
+				return "", ctx.Err()
+			case <-timer.C:
+			}
 		}
-		result, err := doChatRequest(client, baseURL, apiKey, model, systemPrompt, diff)
+		result, err := doChatRequest(ctx, client, baseURL, apiKey, model, systemPrompt, diff)
 		if err == nil {
 			return result, nil
 		}
@@ -138,7 +146,7 @@ func tryModelWithRetry(client *http.Client, baseURL, apiKey, model, systemPrompt
 	return "", lastErr
 }
 
-func doChatRequest(client *http.Client, baseURL, apiKey, model, systemPrompt, diff string) (string, error) {
+func doChatRequest(ctx context.Context, client *http.Client, baseURL, apiKey, model, systemPrompt, diff string) (string, error) {
 	body := chatRequest{
 		Model: model,
 		Messages: []chatMessage{
@@ -154,7 +162,7 @@ func doChatRequest(client *http.Client, baseURL, apiKey, model, systemPrompt, di
 	}
 
 	endpoint := baseURL + "/chat/completions"
-	req, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewReader(rawBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(rawBody))
 	if err != nil {
 		return "", err
 	}

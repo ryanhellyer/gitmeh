@@ -3,6 +3,7 @@
 package aiapi
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -15,7 +16,7 @@ import (
 func TestCommitMessageOpenAIChat_nilClient(t *testing.T) {
 	t.Parallel()
 
-	_, err := CommitMessageOpenAIChat(nil, OpenAIChatParams{
+	_, err := CommitMessageOpenAIChat(context.Background(),nil, OpenAIChatParams{
 		BaseURL:      "http://x",
 		APIKey:       "k",
 		Model:        "m",
@@ -29,7 +30,7 @@ func TestCommitMessageOpenAIChat_nilClient(t *testing.T) {
 func TestCommitMessageOpenAIChat_emptyKey(t *testing.T) {
 	t.Parallel()
 
-	_, err := CommitMessageOpenAIChat(DefaultHTTPClient(), OpenAIChatParams{
+	_, err := CommitMessageOpenAIChat(context.Background(),DefaultHTTPClient(), OpenAIChatParams{
 		BaseURL:      "http://x",
 		APIKey:       "  ",
 		Model:        "m",
@@ -78,7 +79,7 @@ func TestCommitMessageOpenAIChat_success(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	got, err := CommitMessageOpenAIChat(srv.Client(), OpenAIChatParams{
+	got, err := CommitMessageOpenAIChat(context.Background(),srv.Client(), OpenAIChatParams{
 		BaseURL:      srv.URL,
 		APIKey:       "secret",
 		Model:        "test-model",
@@ -107,7 +108,7 @@ func TestCommitMessageOpenAIChat_retryOnTransientError(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	got, err := CommitMessageOpenAIChat(srv.Client(), OpenAIChatParams{
+	got, err := CommitMessageOpenAIChat(context.Background(),srv.Client(), OpenAIChatParams{
 		BaseURL:      srv.URL,
 		APIKey:       "k",
 		Model:        "m",
@@ -144,7 +145,7 @@ func TestCommitMessageOpenAIChat_fallbackOnPrimaryFail(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	got, err := CommitMessageOpenAIChat(srv.Client(), OpenAIChatParams{
+	got, err := CommitMessageOpenAIChat(context.Background(),srv.Client(), OpenAIChatParams{
 		BaseURL:        srv.URL,
 		APIKey:         "k",
 		Model:          "primary",
@@ -175,7 +176,7 @@ func TestCommitMessageOpenAIChat_contextLengthTriggersFallback(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	got, err := CommitMessageOpenAIChat(srv.Client(), OpenAIChatParams{
+	got, err := CommitMessageOpenAIChat(context.Background(),srv.Client(), OpenAIChatParams{
 		BaseURL:        srv.URL,
 		APIKey:         "k",
 		Model:          "small-context",
@@ -199,7 +200,7 @@ func TestCommitMessageOpenAIChat_allModelsFail(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	_, err := CommitMessageOpenAIChat(srv.Client(), OpenAIChatParams{
+	_, err := CommitMessageOpenAIChat(context.Background(),srv.Client(), OpenAIChatParams{
 		BaseURL:        srv.URL,
 		APIKey:         "k",
 		Model:          "m1",
@@ -230,7 +231,7 @@ func TestCommitMessageOpenAIChat_non2xxUsesErrorMessage(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	_, err := CommitMessageOpenAIChat(srv.Client(), OpenAIChatParams{
+	_, err := CommitMessageOpenAIChat(context.Background(),srv.Client(), OpenAIChatParams{
 		BaseURL:      srv.URL,
 		APIKey:       "k",
 		Model:        "m",
@@ -255,7 +256,7 @@ func TestCommitMessageOpenAIChat_noChoices(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	_, err := CommitMessageOpenAIChat(srv.Client(), OpenAIChatParams{
+	_, err := CommitMessageOpenAIChat(context.Background(),srv.Client(), OpenAIChatParams{
 		BaseURL:      srv.URL,
 		APIKey:       "k",
 		Model:        "m",

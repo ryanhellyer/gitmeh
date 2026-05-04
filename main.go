@@ -2,11 +2,15 @@ package main
 
 import (
 	"bufio"
+	"context"
 	_ "embed"
+	"errors"
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"unicode/utf8"
 
 	"gitmeh/internal/aiapi"
@@ -39,6 +43,9 @@ func main() {
 		}
 	}
 
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	if err := git.AddAll(); err != nil {
 		fatalErr(err)
 	}
@@ -53,7 +60,7 @@ func main() {
 
 	cfg := config.Load()
 	httpClient := aiapi.HTTPClientForChatBase(cfg.Chat.BaseURL)
-	msg, err := aiapi.CommitMessageOpenAIChat(httpClient, aiapi.OpenAIChatParams{
+	msg, err := aiapi.CommitMessageOpenAIChat(ctx, httpClient, aiapi.OpenAIChatParams{
 		BaseURL:        cfg.Chat.BaseURL,
 		APIKey:         cfg.Chat.APIKey,
 		Model:          cfg.Chat.Model,
@@ -61,6 +68,9 @@ func main() {
 		FallbackModels: cfg.Chat.FallbackModels,
 	}, diff)
 	if err != nil {
+		if errors.Is(err, context.Canceled) {
+			fatalMsg("cancelled")
+		}
 		fatalErr(err)
 	}
 	if strings.TrimSpace(msg) == "" {
