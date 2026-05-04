@@ -50,7 +50,9 @@ func main() {
 		fatalErr(err)
 	}
 
-	diff, err := git.StagedDiff()
+	cfg := config.Load()
+
+	diff, err := git.StagedDiffTruncated(cfg.Chat.MaxDiffBytes)
 	if err != nil {
 		fatalErr(err)
 	}
@@ -58,13 +60,6 @@ func main() {
 		fatalMsg("nothing staged to commit")
 	}
 
-	cfg := config.Load()
-	if cfg.Chat.MaxDiffBytes > 0 && len(diff) > cfg.Chat.MaxDiffBytes {
-		fatalMsg(fmt.Sprintf(
-			"staged diff is %d bytes (max %d). Set GITMEH_MAX_DIFF_BYTES to increase the limit.",
-			len(diff), cfg.Chat.MaxDiffBytes,
-		))
-	}
 	httpClient := aiapi.HTTPClientForChatBase(cfg.Chat.BaseURL)
 	msg, err := aiapi.CommitMessageOpenAIChat(ctx, httpClient, aiapi.OpenAIChatParams{
 		BaseURL:        cfg.Chat.BaseURL,
