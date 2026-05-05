@@ -1,0 +1,36 @@
+gitmeh — stage, suggest a commit message, then commit and push
+
+USAGE
+  gitmeh [-h] [-v]
+
+DESCRIPTION
+  Stages all changes (git add --all), sends the staged diff to a remote service
+  to propose a commit message, then lets you accept, reject, or edit that
+  message before running git commit and git push origin HEAD (current branch).
+
+OPTIONS
+  -h               Show this help and exit.
+  -v               Print the program name and version, then exit.
+
+ENVIRONMENT
+  OpenAI-compatible chat (default)
+    POST JSON to /v1/chat/completions. With no API key env vars, uses the
+    compiled-in hosted base URL, bearer token, and model (see internal/config).
+
+    GITMEH_API_BASE      Optional API root, no trailing slash (overrides the
+                         default hosted base when no user API key is set).
+    GITMEH_MODEL         Optional model id. OPENROUTER_MODEL is used if
+                         GITMEH_MODEL is unset (overrides default hosted model
+                         when no user API key is set).
+    GITMEH_PROMPT        Optional system instructions; unified diff is always sent
+                         in a separate user message after your text.
+
+  User API key (OpenAI-compatible host, e.g. OpenRouter)
+    GITMEH_API_KEY       Bearer token for /v1/chat/completions.
+    GITMEH_API_BASE      Optional API root (default: https://openrouter.ai/api/v1).
+    GITMEH_MODEL         Optional model id (default with user key: google/gemma-3-4b-it).
+    OPENROUTER_API_KEY   Legacy alias for GITMEH_API_KEY (from earlier versions).
+    OPENROUTER_MODEL     Legacy alias for GITMEH_MODEL (from earlier versions).
+
+SEE ALSO
+  git-add(1), git-commit(1), git-push(1)
