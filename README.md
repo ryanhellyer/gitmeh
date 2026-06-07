@@ -4,19 +4,22 @@
 
 Stages everything (`git add --all`), AI-guesses a commit message, then shovels it to the cloud. Designed for people who can't be bothered writing their own commit messages.
 
-> **⚠️** Probably fine for personal projects. Tread carefully on shared repos — know what you're staging before you let AI push it.
+This started life as a Bash script written on a Sunday afternoon. Then people actually started using it, so I rewrote it in Go — partly as a learning exercise, partly because the Bash version had too many sharp edges. The result is faster, more reliable, and genuinely useful enough that I've softened my stance on whether it belongs in professional workflows.
+
+> **⚠️** Review what you're staging before you let AI push it, especially on shared repos. That said, the "stage, AI-draft, review, commit" workflow is genuinely faster than writing messages by hand — I use it daily now.
 
 ### Why use this?
 
 Because writing commit messages takes effort and you've got better things to do.
 
 * **Automated Staging:** Runs `git add --all` so you don't have to think about what changed.
-* **AI Guesswork:** Generates a commit message via an OpenAI-compatible chat API, with retry logic and configurable fallback models.
+* **AI Guesswork:** Generates a commit message via an OpenAI-compatible chat API, with retry logic, fallback models, and exponential backoff.
+* **Interactive Review:** Review the message before committing, edit it inline with cursor keys, or abort — all at a single prompt.
 * **Automatic Pushing:** Commits and pushes in one step.
 
 ### Default API service
 
-If you don't set `GITMEH_API_KEY`, gitmeh uses a **free hosted API** at `https://ai.hellyer.kiwi/`, run by the author (Ryan Hellyer). The backend automatically selects whichever AI model is working best and cheapest at the time, so models will vary between requests without warning.
+If you don't set `GITMEH_API_KEY`, gitmeh uses a **free hosted API** at `https://ai.hellyer.kiwi/v1`, run by the author (Ryan Hellyer). The backend is a Laravel-based API and currently runs **Deepseek V4 Flash**, which produces surprisingly good commit messages for a tool that started life as a Bash joke. If usage costs climb too high I may need to switch to a smaller model, but for now the quality/price ratio is excellent.
 
 **Your staged diff (code) is sent to this server** and then forwarded to whichever model the backend picks. If you are not comfortable sharing your code with me (Ryan) or with the random third-party model I route it through, **do not use the default service**. Set `GITMEH_API_BASE`, `GITMEH_API_KEY`, `GITMEH_MODEL` etc. to use your own AI provider instead.
 
@@ -29,20 +32,27 @@ I have zero interest in your code and no intention of looking at it, but it will
 make build && cp git-meh ~/.local/bin/           # from the repo root (requires Go)
 # Or: ./install.sh                              # uses a prebuilt binary
 
-# 2. Set up an API key (OpenCode Zen recommended)
-export GITMEH_API_BASE='https://opencode.ai/zen/v1'
-export GITMEH_API_KEY='your_zen_key'
-
-# 3. Run
+# 2. Run
 git meh
 ```
 
-Git discovers the binary as a subcommand — works in any repository.
+Git discovers the binary as a subcommand — works in any repository. No API key required — gitmeh ships with a built-in default that works out of the box.
 
-## Configuration
+### Using your own API key (optional)
+
+If you'd prefer to use your own AI provider instead of the default service, set at minimum:
+
+```bash
+export GITMEH_API_BASE='https://opencode.ai/zen/v1'   # or any OpenAI-compatible endpoint
+export GITMEH_API_KEY='your_api_key'
+```
+
+Works with OpenCode Zen, OpenAI, OpenRouter, and any OpenAI-compatible API.
+
+All available config options when bringing your own key:
 
 | Env var | Description | Default |
-|---|---|---|
+|---|---|---|---|
 | `GITMEH_API_BASE` | API base URL | `https://ai.hellyer.kiwi/v1` (built-in) |
 | `GITMEH_API_KEY` | API key | built-in public key |
 | `GITMEH_MODEL` | Model name | `gitmeh-hosted` or `google/gemma-3-4b-it` |
@@ -52,7 +62,7 @@ Git discovers the binary as a subcommand — works in any repository.
 
 **Auth priority**: `GITMEH_API_KEY` > built-in public key.
 
-**Fallback models**: If the primary model fails (timeout, 5xx, context-length exceeded), gitmeh retries up to 3 times with exponential backoff, then tries each fallback model in order. A 401 or other client error skips retries immediately.
+**Fallback models**: If the primary model fails (timeout, 5xx response codes, context-length exceeded), gitmeh retries up to 3 times with exponential backoff, then tries each fallback model in order. A 401 or other client error skips retries immediately.
 
 **Diff truncation**: When the staged diff exceeds `GITMEH_MAX_DIFF_BYTES`, gitmeh keeps all file headers and proportionally trims hunk content per file. Truncated sections are marked with `# hunk truncated`.
 
@@ -66,7 +76,8 @@ Git discovers the binary as a subcommand — works in any repository.
 ### Commands
 
 ```bash
-make build       # build native binary
+make dev         # build native binary (developer mode, self-signed TLS)
+make build       # build native binary (production)
 make test        # run unit tests
 make lint        # run golangci-lint + govulncheck
 make cross       # cross-compile for Linux/macOS, amd64/arm64
@@ -89,9 +100,9 @@ internal/
 
 ### Dev / prod builds
 
-When built with `make build`, the binary targets `ai.hellyer.test` and accepts self-signed TLS certificates (developer mode). This is controlled by a linker flag (`-ldflags="-X gitmeh/internal/config.isDev=true"`) so the dev hostname is never compiled into release binaries.
+When built with `make dev`, the binary targets `ai.hellyer.test` and accepts self-signed TLS certificates (developer mode). This is controlled by a linker flag (`-ldflags="-X gitmeh/internal/config.isDev=true"`) so the dev hostname is never compiled into release binaries.
 
-`make cross` (used by CI for GitHub releases) omits the flag, so release binaries target `ai.hellyer.kiwi` with full TLS verification.
+`make build` and `make cross` produce release binaries that target `ai.hellyer.kiwi` with full TLS verification.
 
 ### Architecture notes
 

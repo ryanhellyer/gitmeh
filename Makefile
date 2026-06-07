@@ -1,7 +1,11 @@
-.PHONY: build test lint clean cross all
+.PHONY: dev build test lint clean cross all
+
+dev:
+	go build -ldflags="-X gitmeh/internal/config.isDev=true" -o git-meh .
+	ln -sf git-meh gitmeh
 
 build:
-	go build -ldflags="-X gitmeh/internal/config.isDev=true" -o git-meh .
+	go build -o git-meh .
 	ln -sf git-meh gitmeh
 
 test:
