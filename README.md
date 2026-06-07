@@ -51,7 +51,7 @@ Works with OpenCode Zen, OpenAI, OpenRouter, and any OpenAI-compatible API.
 All available config options when bringing your own key:
 
 | Env var | Description | Default |
-|---|---|---|---|
+| --- | --- | --- |
 | `GITMEH_API_BASE` | API base URL | `https://ai.hellyer.kiwi/v1` (built-in) |
 | `GITMEH_API_KEY` | API key | built-in public key |
 | `GITMEH_MODEL` | Model name | `gitmeh-hosted` or `google/gemma-3-4b-it` |
