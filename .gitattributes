@@ -1,0 +1,7 @@
+* text=auto eol=lf
+
+*.go text eol=lf
+Makefile text eol=lf
+*.sh text eol=lf
+
+go.sum binary

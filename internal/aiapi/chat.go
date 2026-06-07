@@ -132,6 +132,9 @@ func tryModelWithRetry(ctx context.Context, client *http.Client, baseURL, apiKey
 		}
 		lastErr = err
 
+		if ctx.Err() != nil {
+			return "", ctx.Err()
+		}
 		if isContextLengthError(err) {
 			fmt.Fprintf(os.Stderr, "\n  %s: context length exceeded\n", model)
 			return "", err

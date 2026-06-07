@@ -33,7 +33,17 @@ func mustWriteFile(t *testing.T, name, content string) {
 	}
 }
 
-func initWorktree(t *testing.T) {
+// initRepoAt initialises a git repository at dir and configures a test identity.
+func initRepoAt(t *testing.T, dir string) {
+	t.Helper()
+	mustGit(t, "-C", dir, "init", "-b", "main")
+	mustGit(t, "-C", dir, "config", "user.email", "integration-test@example.com")
+	mustGit(t, "-C", dir, "config", "user.name", "Integration Test")
+}
+
+// initWorktree creates a fresh git repo in a temp directory, chdirs into it,
+// and returns the repo path for callers that need it (e.g. to add a remote).
+func initWorktree(t *testing.T) string {
 	t.Helper()
 	skipWithoutGit(t)
 
@@ -43,10 +53,8 @@ func initWorktree(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Chdir(repo)
-
-	mustGit(t, "init", "-b", "main")
-	mustGit(t, "config", "user.email", "integration-test@example.com")
-	mustGit(t, "config", "user.name", "Integration Test")
+	initRepoAt(t, repo)
+	return repo
 }
 
 // Checks StagedDiff() after a real staged edit: initial commit, change file, stage with git add, then expect a non-empty unified diff naming the file and showing the added line.
@@ -140,10 +148,7 @@ func TestIntegration_CommitAndPush(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Chdir(repo)
-
-	mustGit(t, "init", "-b", "main")
-	mustGit(t, "config", "user.email", "integration-test@example.com")
-	mustGit(t, "config", "user.name", "Integration Test")
+	initRepoAt(t, repo)
 	mustGit(t, "remote", "add", "origin", bare)
 
 	mustWriteFile(t, "file.txt", "v1\n")

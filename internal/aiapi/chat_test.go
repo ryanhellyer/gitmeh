@@ -127,16 +127,11 @@ func TestCommitMessageOpenAIChat_fallbackOnPrimaryFail(t *testing.T) {
 
 	callCount := make(map[string]int)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		model := r.URL.Query().Get("model")
-		callCount[model]++
+		var req chatRequest
+		_ = json.NewDecoder(r.Body).Decode(&req)
+		callCount[req.Model]++
 
-		if model == "" {
-			var req chatRequest
-			_ = json.NewDecoder(r.Body).Decode(&req)
-			model = req.Model
-		}
-
-		if model == "primary" {
+		if req.Model == "primary" {
 			w.WriteHeader(http.StatusBadGateway)
 			_, _ = w.Write([]byte(`{"error":{"message":"upstream error"}}`))
 			return
