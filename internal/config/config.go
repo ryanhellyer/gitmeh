@@ -32,17 +32,9 @@ func HostedChatBaseURL() string {
 	return "https://" + HostedHostname() + "/v1"
 }
 
-// Backend selects how gitmeh talks to the model service.
-type Backend int
-
-const (
-	// BackendOpenAIChat uses an OpenAI-compatible /v1/chat/completions JSON API.
-	BackendOpenAIChat Backend = iota
-)
-
 const DefaultMaxDiffBytes = 10_000
 
-// OpenAIChat holds settings for [BackendOpenAIChat].
+// OpenAIChat holds settings for the OpenAI-compatible chat API.
 type OpenAIChat struct {
 	BaseURL        string
 	APIKey         string
@@ -54,8 +46,7 @@ type OpenAIChat struct {
 
 // App is resolved configuration from the environment.
 type App struct {
-	Backend Backend
-	Chat    OpenAIChat
+	Chat OpenAIChat
 }
 
 const defaultOpenAIBase = "https://openrouter.ai/api/v1"
@@ -134,7 +125,6 @@ func Load() App {
 	}
 
 	return App{
-		Backend: BackendOpenAIChat,
 		Chat: OpenAIChat{
 			BaseURL:        base,
 			APIKey:         apiKey,

@@ -8,7 +8,8 @@ test:
 	go test ./... -count=1
 
 lint:
-	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.1 && golangci-lint run ./...
+	command -v golangci-lint >/dev/null 2>&1 || go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.1
+	golangci-lint run ./...
 	govulncheck ./...
 
 clean:

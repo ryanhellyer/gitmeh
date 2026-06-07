@@ -73,6 +73,20 @@ func splitHeader(section string) diffSection {
 	}
 }
 
+// truncateToValidUTF8 returns s truncated to at most maxBytes, ensuring the
+// result does not split a multi-byte UTF-8 character. If maxBytes lands in the
+// middle of a multi-byte sequence the extra bytes are dropped.
+func truncateToValidUTF8(s string, maxBytes int) string {
+	if len(s) <= maxBytes {
+		return s
+	}
+	end := maxBytes
+	for end > 0 && end < len(s) && s[end]&0xC0 == 0x80 {
+		end--
+	}
+	return s[:end]
+}
+
 func truncateByFile(diff string, maxBytes int) string {
 	sections := parseSections(diff)
 	if len(sections) <= 1 {
@@ -81,12 +95,12 @@ func truncateByFile(diff string, maxBytes int) string {
 		h := sections[0].header
 		avail := maxBytes - len(h)
 		if avail <= 0 {
-			return diff[:maxBytes] + "\n# diff truncated\n"
+			return truncateToValidUTF8(diff, maxBytes) + "\n# diff truncated\n"
 		}
 		if len(sections[0].hunks) <= avail {
 			return diff
 		}
-		return h + sections[0].hunks[:avail] + "\n# hunk truncated\n"
+		return h + truncateToValidUTF8(sections[0].hunks, avail) + "\n# hunk truncated\n"
 	}
 
 	// Keep all headers — they're small and essential.
@@ -125,7 +139,6 @@ func truncateByFile(diff string, maxBytes int) string {
 	buf.WriteString(headerBuf.String())
 
 	remainingHunkBudget := hunkBudget
-	remainingHunkSize := totalHunkSize
 
 	for _, s := range sections {
 		if len(s.hunks) == 0 {
@@ -144,11 +157,10 @@ func truncateByFile(diff string, maxBytes int) string {
 		if alloc >= len(s.hunks) {
 			buf.WriteString(s.hunks)
 		} else {
-			buf.WriteString(s.hunks[:alloc])
+			buf.WriteString(truncateToValidUTF8(s.hunks, alloc))
 			buf.WriteString("\n# hunk truncated\n")
 		}
 		remainingHunkBudget -= alloc
-		remainingHunkSize -= len(s.hunks)
 	}
 
 	return buf.String()

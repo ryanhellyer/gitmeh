@@ -8,8 +8,6 @@ linters:
     - ineffassign
     - unused
     - misspell
-  exclusions:
-    presets: []
 run:
   timeout: 5m
   tests: true

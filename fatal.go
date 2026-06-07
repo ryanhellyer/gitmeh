@@ -6,11 +6,11 @@ import (
 )
 
 func fatalErr(err error) {
-	fmt.Println(err)
+	fmt.Fprintln(os.Stderr, err)
 	os.Exit(1)
 }
 
 func fatalMsg(msg string) {
-	fmt.Println(msg)
+	fmt.Fprintln(os.Stderr, msg)
 	os.Exit(1)
 }

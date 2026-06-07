@@ -8,6 +8,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"golang.org/x/term"
 )
 
 const httpTimeout = 60 * time.Second
@@ -68,8 +70,14 @@ func stderrCommitSpinner(stop <-chan struct{}, done chan<- struct{}) {
 	}
 }
 
-// withGeneratingCommitSpinner runs fn while showing a stderr spinner until fn returns.
+// withGeneratingCommitSpinner runs fn while showing a stderr spinner until fn
+// returns. The spinner is suppressed when stderr is not a terminal (e.g.
+// piping or scripting).
 func withGeneratingCommitSpinner(fn func() (string, error)) (string, error) {
+	if !term.IsTerminal(int(os.Stderr.Fd())) {
+		_, _ = fmt.Fprint(os.Stderr, "Generating commit message...\n")
+		return fn()
+	}
 	stopSpinner := make(chan struct{})
 	spinnerDone := make(chan struct{})
 	go stderrCommitSpinner(stopSpinner, spinnerDone)

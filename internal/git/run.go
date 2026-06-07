@@ -2,7 +2,6 @@ package git
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -26,8 +25,5 @@ func runGit(args ...string) error {
 		return err
 	}
 
-	if msg != "" {
-		fmt.Fprintln(os.Stderr, msg)
-	}
 	return nil
 }

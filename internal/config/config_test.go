@@ -15,9 +15,6 @@ func TestLoad_defaultChatWhenNoUserKey(t *testing.T) {
 	t.Setenv("GITMEH_PROMPT", "")
 
 	got := Load()
-	if got.Backend != BackendOpenAIChat {
-		t.Fatalf("backend: got %v want chat", got.Backend)
-	}
 	if got.Chat.BaseURL != HostedChatBaseURL() {
 		t.Fatalf("BaseURL: got %q want %q", got.Chat.BaseURL, HostedChatBaseURL())
 	}
@@ -54,9 +51,6 @@ func TestLoad_customBaseWithDefaultPublicKey(t *testing.T) {
 	t.Setenv("GITMEH_PROMPT", "")
 
 	got := Load()
-	if got.Backend != BackendOpenAIChat {
-		t.Fatalf("backend")
-	}
 	if got.Chat.BaseURL != "https://staging.example/v1" {
 		t.Fatalf("BaseURL: got %q", got.Chat.BaseURL)
 	}
@@ -78,9 +72,6 @@ func TestLoad_chatOpenRouterKey(t *testing.T) {
 	t.Setenv("GITMEH_PROMPT", "")
 
 	got := Load()
-	if got.Backend != BackendOpenAIChat {
-		t.Fatalf("backend: got %v want chat", got.Backend)
-	}
 	if got.Chat.APIKey != "sk-test" {
 		t.Fatalf("APIKey")
 	}
@@ -100,9 +91,6 @@ func TestLoad_chatGITMEHKeyOverridesBase(t *testing.T) {
 	t.Setenv("GITMEH_PROMPT", "Be brief.")
 
 	got := Load()
-	if got.Backend != BackendOpenAIChat {
-		t.Fatalf("backend")
-	}
 	if got.Chat.APIKey != "k" {
 		t.Fatalf("APIKey")
 	}
