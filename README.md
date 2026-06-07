@@ -2,6 +2,8 @@
 
 **AI-powered git commits for people with better things to do.**
 
+Stages all changes, generates a commit message via AI, commits, and pushes — all in one command. Review and edit before it pushes.
+
 ## Quick Start
 
 ```bash
