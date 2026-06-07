@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: [master, main]
-    tags: [v*]
+    tags: ['v*', '[0-9]*']
   pull_request:
     branches: [master, main]
 
@@ -43,7 +43,7 @@ jobs:
           fail_ci_if_error: false
 
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/')
     needs: ci
     runs-on: ubuntu-latest
     permissions:
