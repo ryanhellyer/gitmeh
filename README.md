@@ -2,11 +2,25 @@
 
 **AI-powered git commits for people with better things to do.**
 
+## Quick Start
+
+```bash
+# 1. Install
+curl -fsSL https://raw.githubusercontent.com/ryanhellyer/gitmeh/master/install.sh | bash
+
+# 2. Run
+git meh
+```
+
+Or build from source: `make build && cp git-meh ~/.local/bin/` (requires Go).
+
+Git discovers the binary as a subcommand — works in any repository. No API key required — gitmeh ships with a built-in default that works out of the box.
+
+> **⚠️** Review what you're staging before AI pushes it, especially on shared repos.
+
+### What it does
+
 Stages everything (`git add --all`), generates a commit message via AI, commits it, and pushes. For those who believe commit messages are important — just not important enough to write by hand.
-
-> **⚠️** Review what you're staging before AI pushes it, especially on shared repos. That said, the "stage, AI-draft, review, commit" workflow is genuinely faster than writing messages by hand — I use it daily.
-
-### Why use this?
 
 Because commit messages matter — just not enough to spend brainpower on them.
 
@@ -22,20 +36,6 @@ If you don't set `GITMEH_API_KEY`, gitmeh uses a **free hosted API** at `https:/
 **Your staged diff (code) is sent to this server** and forwarded to whichever model the backend selects. If you're uncomfortable sharing your code with me (Ryan) or with the third-party model provider, **do not use the default service**. Set `GITMEH_API_BASE`, `GITMEH_API_KEY`, and `GITMEH_MODEL` to use your own AI provider instead.
 
 I have zero interest in your code and no intention of reading it, but it does pass through my server and the model provider's servers.
-
-## Quick Start
-
-```bash
-# 1. Install
-curl -fsSL https://raw.githubusercontent.com/ryanhellyer/gitmeh/master/install.sh | bash
-
-# 2. Run
-git meh
-```
-
-Or build from source: `make build && cp git-meh ~/.local/bin/` (requires Go).
-
-Git discovers the binary as a subcommand — works in any repository. No API key required — gitmeh ships with a built-in default that works out of the box.
 
 ### Using your own API key (optional)
 
