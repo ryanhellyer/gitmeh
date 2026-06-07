@@ -251,18 +251,22 @@ func readCommitMessageInline(initial string, stdin io.Reader, rd *bufio.Reader, 
 
 		switch r {
 		case '\r', '\n':
+			// Enter — submit the current line.
 			fmt.Fprint(stdout, "\r\n")
 			return string(line), nil
-		case 3: // Ctrl+C
+		case 3:
+			// Ctrl+C — abort editing.
 			fmt.Fprint(stdout, "\r\n")
 			return "", fmt.Errorf("interrupted")
 		case 127, '\b':
+			// Backspace — delete the character before the cursor.
 			if pos > 0 {
 				line = append(line[:pos-1], line[pos:]...)
 				pos--
 				redraw()
 			}
-		case 27: // ESC — arrow keys
+		case 27:
+			// ESC sequence starter — decode arrow keys.
 			br, _, err := rd.ReadRune()
 			if err != nil || br != '[' {
 				continue
@@ -273,17 +277,20 @@ func readCommitMessageInline(initial string, stdin io.Reader, rd *bufio.Reader, 
 			}
 			switch dir {
 			case 'D':
+				// Left arrow — move cursor one position left.
 				if pos > 0 {
 					pos--
 					redraw()
 				}
 			case 'C':
+				// Right arrow — move cursor one position right.
 				if pos < len(line) {
 					pos++
 					redraw()
 				}
 			}
 		default:
+			// Printable characters (ASCII 32–126) — insert at cursor.
 			if r >= 32 {
 				line = append(line[:pos], append([]rune{r}, line[pos:]...)...)
 				pos++
