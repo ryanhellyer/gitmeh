@@ -9,12 +9,12 @@ import (
 func TestHTTPClientForChatBase_insecureTransportOnlyForDevHost(t *testing.T) {
 	t.Parallel()
 
-	dev := HTTPClientForChatBase("https://ai.hellyer.test/v1")
+	dev := HTTPClientForChatBase("https://example.test/v1", "example.test")
 	if dev.Transport == nil {
-		t.Fatal("expected custom transport for ai.hellyer.test")
+		t.Fatal("expected custom transport for host with matching insecure flag")
 	}
-	prod := HTTPClientForChatBase("https://openrouter.ai/api/v1")
+	prod := HTTPClientForChatBase("https://openrouter.ai/api/v1", "example.test")
 	if prod.Transport != nil {
-		t.Fatal("expected default transport for non-dev host")
+		t.Fatal("expected default transport for unmatched host")
 	}
 }

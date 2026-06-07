@@ -18,11 +18,11 @@ func DefaultHTTPClient() *http.Client {
 	return &http.Client{Timeout: httpTimeout}
 }
 
-// HTTPClientForChatBase returns a client with [httpTimeout]. For
-// ai.hellyer.test (typical self-signed dev TLS), certificate verification is
-// skipped so the default hosted endpoint matches curl -k behavior.
-func HTTPClientForChatBase(baseURL string) *http.Client {
-	if !chatBaseSkipsTLSVerify(baseURL) {
+// HTTPClientForChatBase returns a client with [httpTimeout]. If baseURL's
+// hostname equals insecureHost, certificate verification is skipped to
+// accommodate self-signed dev TLS (e.g. on a private server).
+func HTTPClientForChatBase(baseURL string, insecureHost string) *http.Client {
+	if !chatBaseSkipsTLSVerify(baseURL, insecureHost) {
 		return DefaultHTTPClient()
 	}
 	tr, ok := http.DefaultTransport.(*http.Transport)
@@ -35,16 +35,16 @@ func HTTPClientForChatBase(baseURL string) *http.Client {
 	} else if ct.TLSClientConfig.MinVersion == 0 {
 		ct.TLSClientConfig.MinVersion = tls.VersionTLS12
 	}
-	ct.TLSClientConfig.InsecureSkipVerify = true //nolint:gosec // ai.hellyer.test dev TLS only; see chatBaseSkipsTLSVerify
+	ct.TLSClientConfig.InsecureSkipVerify = true //nolint:gosec // guarded by chatBaseSkipsTLSVerify
 	return &http.Client{Timeout: httpTimeout, Transport: ct}
 }
 
-func chatBaseSkipsTLSVerify(baseURL string) bool {
+func chatBaseSkipsTLSVerify(baseURL string, host string) bool {
 	u, err := url.Parse(strings.TrimSpace(baseURL))
 	if err != nil || u.Hostname() == "" {
 		return false
 	}
-	return strings.EqualFold(u.Hostname(), "ai.hellyer.test")
+	return strings.EqualFold(u.Hostname(), host)
 }
 
 // stderrCommitSpinner draws a simple ASCII spinner on stderr until stop is closed.

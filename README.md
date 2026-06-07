@@ -16,7 +16,7 @@ Because writing commit messages takes effort and you've got better things to do.
 
 ### Default API service
 
-If you don't set `GITMEH_API_KEY`, gitmeh uses a **free hosted API** at `https://ai.hellyer.test/`, run by the author (Ryan Hellyer). The backend automatically selects whichever AI model is working best and cheapest at the time, so models will vary between requests without warning.
+If you don't set `GITMEH_API_KEY`, gitmeh uses a **free hosted API** at `https://ai.hellyer.kiwi/`, run by the author (Ryan Hellyer). The backend automatically selects whichever AI model is working best and cheapest at the time, so models will vary between requests without warning.
 
 **Your staged diff (code) is sent to this server** and then forwarded to whichever model the backend picks. If you are not comfortable sharing your code with me (Ryan) or with the random third-party model I route it through, **do not use the default service**. Set `GITMEH_API_BASE`, `GITMEH_API_KEY`, `GITMEH_MODEL` etc. to use your own AI provider instead.
 
@@ -44,7 +44,7 @@ Git discovers the binary as a subcommand — works in any repository.
 
 | Env var | Description | Default |
 |---|---|---|
-| `GITMEH_API_BASE` | API base URL | `https://ai.hellyer.test/v1` (built-in) |
+| `GITMEH_API_BASE` | API base URL | `https://ai.hellyer.kiwi/v1` (built-in) |
 | `GITMEH_API_KEY` | API key | built-in public key |
 | `GITMEH_MODEL` | Model name | `gitmeh-hosted` or `google/gemma-3-4b-it` |
 | `GITMEH_PROMPT` | System prompt for the model | Conventional Commits prompt |

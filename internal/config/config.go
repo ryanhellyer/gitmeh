@@ -8,7 +8,8 @@ import (
 
 // Defaults for the built-in hosted OpenAI-compatible API (no user API key).
 const (
-	DefaultHostedChatBaseURL = "https://ai.hellyer.test/v1"
+	DefaultHostedHostname    = "ai.hellyer.test"
+	DefaultHostedChatBaseURL = "https://" + DefaultHostedHostname + "/v1"
 	DefaultPublicAPIKey      = "gitmeh-public-client" //nolint:gosec // public key for the default hosted endpoint
 	DefaultHostedModel       = "gitmeh-hosted"
 )
