@@ -113,23 +113,27 @@ When built with `make dev`, the binary targets `ai.hellyer.test` and accepts sel
 
 ## Changelog
 
-### 3.0.1
+### 3.0.2 — 2026-06-07
+
+Bumped all dependencies: `golang.org/x/term`, `actions/checkout`, `actions/setup-go`, `golangci/golangci-lint-action`, `codecov/codecov-action`, `softprops/action-gh-release`.
+
+### 3.0.1 — 2026-06-07
 
 Fixed release automation: GitHub Actions now builds and attaches cross-platform binaries (Linux/macOS, amd64/arm64) to releases. `install.sh` downloads these assets — no Go toolchain required to install.
 
-### 3.0
+### 3.0 — 2026-06-07
 
 Complete rewrite in Go. Ships with a built-in API key and hosted endpoint — works out of the box with zero configuration. Previous versions required your own OpenRouter API key.
 
-### 2.0.2
+### 2.0.2 — 2026-03-17
 
 Fixed default model selection no longer defaults to a paid model. (Also tagged as 2.0.1 — same release, corrected tag.)
 
-### 2.0
+### 2.0 — 2026-03-11
 
 Updated API to an OpenAI-compatible backend.
 
-### 1.0
+### 1.0 — 2026-03-11
 
 Initial implementation using Google Gemini.
 
