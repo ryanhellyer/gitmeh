@@ -1,7 +1,7 @@
 .PHONY: build test lint clean cross all
 
 build:
-	go build -o git-meh .
+	go build -ldflags="-X gitmeh/internal/config.isDev=true" -o git-meh .
 	ln -sf git-meh gitmeh
 
 test:

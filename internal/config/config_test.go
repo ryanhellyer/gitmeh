@@ -18,8 +18,8 @@ func TestLoad_defaultChatWhenNoUserKey(t *testing.T) {
 	if got.Backend != BackendOpenAIChat {
 		t.Fatalf("backend: got %v want chat", got.Backend)
 	}
-	if got.Chat.BaseURL != DefaultHostedChatBaseURL {
-		t.Fatalf("BaseURL: got %q", got.Chat.BaseURL)
+	if got.Chat.BaseURL != HostedChatBaseURL() {
+		t.Fatalf("BaseURL: got %q want %q", got.Chat.BaseURL, HostedChatBaseURL())
 	}
 	if got.Chat.APIKey != DefaultPublicAPIKey {
 		t.Fatalf("APIKey: got %q want DefaultPublicAPIKey", got.Chat.APIKey)
@@ -171,5 +171,23 @@ func TestLoad_chatOpenRouterModelEnv(t *testing.T) {
 	got := Load()
 	if got.Chat.Model != "anthropic/claude-3-haiku" {
 		t.Fatalf("Model: got %q", got.Chat.Model)
+	}
+}
+
+func TestIsDev_defaultsToFalse(t *testing.T) {
+	if IsDev() {
+		t.Fatal("expected IsDev() == false in test builds")
+	}
+}
+
+func TestHostedHostname_prodDefault(t *testing.T) {
+	if got := HostedHostname(); got != "ai.hellyer.kiwi" {
+		t.Fatalf("expected ai.hellyer.kiwi, got %q", got)
+	}
+}
+
+func TestHostedChatBaseURL_prodDefault(t *testing.T) {
+	if got := HostedChatBaseURL(); got != "https://ai.hellyer.kiwi/v1" {
+		t.Fatalf("expected https://ai.hellyer.kiwi/v1, got %q", got)
 	}
 }

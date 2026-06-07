@@ -60,7 +60,7 @@ func main() {
 		fatalMsg("nothing staged to commit")
 	}
 
-	httpClient := aiapi.HTTPClientForChatBase(cfg.Chat.BaseURL, config.DefaultHostedHostname)
+	httpClient := aiapi.HTTPClientForChatBase(cfg.Chat.BaseURL, config.HostedHostname())
 	msg, err := aiapi.CommitMessageOpenAIChat(ctx, httpClient, aiapi.OpenAIChatParams{
 		BaseURL:        cfg.Chat.BaseURL,
 		APIKey:         cfg.Chat.APIKey,

@@ -29,7 +29,6 @@ I have zero interest in your code and no intention of looking at it, but it will
 make build && cp git-meh ~/.local/bin/           # from the repo root (requires Go)
 # Or: ./install.sh                              # uses a prebuilt binary
 
-TODO: this only applies to custom API setups
 # 2. Set up an API key (OpenCode Zen recommended)
 export GITMEH_API_BASE='https://opencode.ai/zen/v1'
 export GITMEH_API_KEY='your_zen_key'
@@ -87,6 +86,12 @@ internal/
   git/               — git command wrappers (add, diff, commit, push)
   version/           — version string
 ```
+
+### Dev / prod builds
+
+When built with `make build`, the binary targets `ai.hellyer.test` and accepts self-signed TLS certificates (developer mode). This is controlled by a linker flag (`-ldflags="-X gitmeh/internal/config.isDev=true"`) so the dev hostname is never compiled into release binaries.
+
+`make cross` (used by CI for GitHub releases) omits the flag, so release binaries target `ai.hellyer.kiwi` with full TLS verification.
 
 ### Architecture notes
 

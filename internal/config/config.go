@@ -8,11 +8,29 @@ import (
 
 // Defaults for the built-in hosted OpenAI-compatible API (no user API key).
 const (
-	DefaultHostedHostname    = "ai.hellyer.test"
-	DefaultHostedChatBaseURL = "https://" + DefaultHostedHostname + "/v1"
-	DefaultPublicAPIKey      = "gitmeh-public-client" //nolint:gosec // public key for the default hosted endpoint
-	DefaultHostedModel       = "gitmeh-hosted"
+	DefaultPublicAPIKey = "gitmeh-public-client" //nolint:gosec // public key for the default hosted endpoint
+	DefaultHostedModel  = "gitmeh-hosted"
 )
+
+// isDev is a linker-overridable string ("true" in dev builds, "false" otherwise)
+// so that developer builds target the test host with self-signed TLS.
+var isDev = "false"
+
+// IsDev reports whether this binary was built for development (ldflags -X … isDev=true).
+func IsDev() bool { return isDev == "true" }
+
+// HostedHostname returns the default hosted API hostname for the current build mode.
+func HostedHostname() string {
+	if IsDev() {
+		return "ai.hellyer.test"
+	}
+	return "ai.hellyer.kiwi"
+}
+
+// HostedChatBaseURL returns the default hosted API base URL for the current build mode.
+func HostedChatBaseURL() string {
+	return "https://" + HostedHostname() + "/v1"
+}
 
 // Backend selects how gitmeh talks to the model service.
 type Backend int
@@ -50,7 +68,7 @@ const defaultCommitPrompt = `Write a Git commit message (Conventional Commits fo
 // With GITMEH_API_KEY set: GITMEH_API_BASE defaults to OpenRouter, model to
 // [defaultModel] unless GITMEH_MODEL is set.
 //
-// With no key set: [DefaultHostedChatBaseURL], [DefaultPublicAPIKey], and
+// With no key set: [HostedChatBaseURL], [DefaultPublicAPIKey], and
 // [DefaultHostedModel] unless GITMEH_API_BASE and/or GITMEH_MODEL override the
 // URL or model.
 //
@@ -108,7 +126,7 @@ func Load() App {
 	} else {
 		apiKey = DefaultPublicAPIKey
 		if base == "" {
-			base = DefaultHostedChatBaseURL
+			base = HostedChatBaseURL()
 		}
 		if model == "" {
 			model = DefaultHostedModel
