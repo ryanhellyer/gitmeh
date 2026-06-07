@@ -1,29 +1,27 @@
 # gitmeh ¯\_(ツ)_/¯
 
-**AI-powered git commits for the terminally lazy.**
+**AI-powered git commits for people with better things to do.**
 
-Stages everything (`git add --all`), AI-guesses a commit message, then shovels it to the cloud. Designed for people who can't be bothered writing their own commit messages.
+Stages everything (`git add --all`), generates a commit message via AI, commits it, and pushes. For those who believe commit messages are important — just not important enough to write by hand.
 
-This started life as a Bash script written on a Sunday afternoon. Then people actually started using it, so I rewrote it in Go — partly as a learning exercise, partly because the Bash version had too many sharp edges. The result is faster, more reliable, and genuinely useful enough that I've softened my stance on whether it belongs in professional workflows.
-
-> **⚠️** Review what you're staging before you let AI push it, especially on shared repos. That said, the "stage, AI-draft, review, commit" workflow is genuinely faster than writing messages by hand — I use it daily now.
+> **⚠️** Review what you're staging before AI pushes it, especially on shared repos. That said, the "stage, AI-draft, review, commit" workflow is genuinely faster than writing messages by hand — I use it daily.
 
 ### Why use this?
 
-Because writing commit messages takes effort and you've got better things to do.
+Because commit messages matter — just not enough to spend brainpower on them.
 
 * **Automated Staging:** Runs `git add --all` so you don't have to think about what changed.
-* **AI Guesswork:** Generates a commit message via an OpenAI-compatible chat API, with retry logic, fallback models, and exponential backoff.
-* **Interactive Review:** Review the message before committing, edit it inline with cursor keys, or abort — all at a single prompt.
+* **AI-Generated Messages:** Produces a commit message via an OpenAI-compatible chat API, with retry logic, fallback models, and exponential backoff.
+* **Interactive Review:** Review the message before committing, edit it inline, or abort — all at a single prompt.
 * **Automatic Pushing:** Commits and pushes in one step.
 
 ### Default API service
 
-If you don't set `GITMEH_API_KEY`, gitmeh uses a **free hosted API** at `https://ai.hellyer.kiwi/v1`, run by the author (Ryan Hellyer). The backend is a Laravel-based API and currently runs **Deepseek V4 Flash**, which produces surprisingly good commit messages for a tool that started life as a Bash joke. If usage costs climb too high I may need to switch to a smaller model, but for now the quality/price ratio is excellent.
+If you don't set `GITMEH_API_KEY`, gitmeh uses a **free hosted API** at `https://ai.hellyer.kiwi/v1`, run by the author (Ryan Hellyer). The backend is a Laravel-based API and currently uses **Deepseek V4 Flash**, which produces creditably good commit messages for a tool that started as a throwaway Bash script. If usage costs climb too high I may need to switch to a smaller model, but for now the quality/price ratio is excellent.
 
-**Your staged diff (code) is sent to this server** and then forwarded to whichever model the backend picks. If you are not comfortable sharing your code with me (Ryan) or with the random third-party model I route it through, **do not use the default service**. Set `GITMEH_API_BASE`, `GITMEH_API_KEY`, `GITMEH_MODEL` etc. to use your own AI provider instead.
+**Your staged diff (code) is sent to this server** and forwarded to whichever model the backend selects. If you're uncomfortable sharing your code with me (Ryan) or with the third-party model provider, **do not use the default service**. Set `GITMEH_API_BASE`, `GITMEH_API_KEY`, and `GITMEH_MODEL` to use your own AI provider instead.
 
-I have zero interest in your code and no intention of looking at it, but it will be processed through my server and the model provider's servers.
+I have zero interest in your code and no intention of reading it, but it does pass through my server and the model provider's servers.
 
 ## Quick Start
 
@@ -112,10 +110,21 @@ When built with `make dev`, the binary targets `ai.hellyer.test` and accepts sel
 
 ## Changelog
 
-- **3.x:** Retry and fallback models, graceful Ctrl+C, diff truncation, CI linting/security scanning, Dependabot, Makefile, support for OpenAI compatible APIs
-- **3.0:** Rewrite in Go; run via `git meh`
-- **2.x:** OpenRouter and plain-text API versions
-- **1.0:** Initial Google Gemini implementation
+### 3.0
+
+Complete rewrite in Go. Ships with a built-in API key and hosted endpoint — works out of the box with zero configuration. Previous versions required your own OpenRouter API key.
+
+### 2.0.2
+
+Fixed default model selection no longer defaults to a paid model. (Also tagged as 2.0.1 — same release, corrected tag.)
+
+### 2.0
+
+Updated API to an OpenAI-compatible backend.
+
+### 1.0
+
+Initial implementation using Google Gemini.
 
 ## Author
 
