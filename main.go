@@ -108,7 +108,7 @@ func reviewCommitMessage(suggested string, stdin io.Reader, stdout io.Writer) (f
 
 	for {
 		fmt.Fprintln(stdout, "\nSuggested commit message:")
-		fmt.Fprintln(stdout, current)
+		fmt.Fprintf(stdout, "\033[32m%s\033[0m\n", current)
 		fmt.Fprint(stdout, "\nCommit and push? [Y/n/e]: ")
 
 		line, err := rd.ReadString('\n')
