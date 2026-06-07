@@ -29,6 +29,7 @@ I have zero interest in your code and no intention of looking at it, but it will
 make build && cp git-meh ~/.local/bin/           # from the repo root (requires Go)
 # Or: ./install.sh                              # uses a prebuilt binary
 
+TODO: this only applies to custom API setups
 # 2. Set up an API key (OpenCode Zen recommended)
 export GITMEH_API_BASE='https://opencode.ai/zen/v1'
 export GITMEH_API_KEY='your_zen_key'
