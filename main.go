@@ -189,10 +189,20 @@ func readCommitMessageInline(initial string, stdin io.Reader, rd *bufio.Reader, 
 	}
 	defer func() { _ = term.Restore(fd, old) }()
 
+	width, _, err := term.GetSize(fd)
+	if err != nil {
+		width = 80
+	}
+
 	line := []rune(initial)
 	pos := len(line)
+	prevCursorRow := 0
 
 	redraw := func() {
+		if prevCursorRow > 0 {
+			fmt.Fprintf(stdout, "\033[%dA", prevCursorRow)
+		}
+		fmt.Fprint(stdout, "\r\033[J")
 		left := ""
 		if pos > 0 {
 			left = string(line[:pos])
@@ -201,10 +211,27 @@ func readCommitMessageInline(initial string, stdin io.Reader, rd *bufio.Reader, 
 		if pos < len(line) {
 			right = string(line[pos:])
 		}
-		fmt.Fprintf(stdout, "\r\033[K%s\033[32m%s%s\033[0m", commitMsgPrompt, left, right)
-		if n := len(right); n > 0 {
-			fmt.Fprintf(stdout, "\033[%dD", n)
+		fmt.Fprintf(stdout, "%s\033[32m%s%s\033[0m", commitMsgPrompt, left, right)
+
+		totalChars := len(commitMsgPrompt) + len(line)
+		totalLines := (totalChars + width - 1) / width
+		if totalLines < 1 {
+			totalLines = 1
 		}
+
+		charsBefore := len(commitMsgPrompt) + pos
+		cursorRow := charsBefore / width
+		cursorCol := charsBefore % width
+		lastRow := totalLines - 1
+
+		fmt.Fprint(stdout, "\r")
+		if lastRow > cursorRow {
+			fmt.Fprintf(stdout, "\033[%dA", lastRow-cursorRow)
+		}
+		if cursorCol > 0 {
+			fmt.Fprintf(stdout, "\033[%dC", cursorCol)
+		}
+		prevCursorRow = cursorRow
 	}
 
 	redraw()
