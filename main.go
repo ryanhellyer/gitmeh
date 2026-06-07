@@ -198,6 +198,8 @@ func readCommitMessageInline(initial string, stdin io.Reader, rd *bufio.Reader, 
 	pos := len(line)
 	prevCursorRow := 0
 
+	// redraw clears the display area and repaints the prompt + message with
+	// the cursor positioned at the insertion point between left and right.
 	redraw := func() {
 		if prevCursorRow > 0 {
 			fmt.Fprintf(stdout, "\033[%dA", prevCursorRow)
