@@ -170,7 +170,7 @@ func readCommitMessageInline(initial string, stdin io.Reader, rd *bufio.Reader, 
 
 	fd, useTTY := stdinTerminalFD(stdin)
 	if !useTTY {
-		fmt.Fprintf(stdout, "%s%s\n", commitMsgPrompt, initial)
+		fmt.Fprintf(stdout, "%s\033[32m%s\033[0m\n", commitMsgPrompt, initial)
 		fmt.Fprint(stdout, "(not a terminal — press Enter to keep, or type a new message)\n> ")
 		line, err := rd.ReadString('\n')
 		if err != nil {
@@ -201,7 +201,7 @@ func readCommitMessageInline(initial string, stdin io.Reader, rd *bufio.Reader, 
 		if pos < len(line) {
 			right = string(line[pos:])
 		}
-		fmt.Fprintf(stdout, "\r\033[K%s%s%s", commitMsgPrompt, left, right)
+		fmt.Fprintf(stdout, "\r\033[K%s\033[32m%s%s\033[0m", commitMsgPrompt, left, right)
 		if n := len(right); n > 0 {
 			fmt.Fprintf(stdout, "\033[%dD", n)
 		}
