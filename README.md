@@ -27,12 +27,13 @@ I have zero interest in your code and no intention of reading it, but it does pa
 
 ```bash
 # 1. Install
-make build && cp git-meh ~/.local/bin/           # from the repo root (requires Go)
-# Or: ./install.sh                              # uses a prebuilt binary
+curl -fsSL https://raw.githubusercontent.com/ryanhellyer/gitmeh/master/install.sh | bash
 
 # 2. Run
 git meh
 ```
+
+Or build from source: `make build && cp git-meh ~/.local/bin/` (requires Go).
 
 Git discovers the binary as a subcommand — works in any repository. No API key required — gitmeh ships with a built-in default that works out of the box.
 
@@ -109,6 +110,10 @@ When built with `make dev`, the binary targets `ai.hellyer.test` and accepts sel
 - Diff truncation splits the unified diff at `diff --git` boundaries, preserves all file headers, and allocates the remaining byte budget proportionally by hunk size.
 
 ## Changelog
+
+### 3.0.1
+
+Fixed release automation: GitHub Actions now builds and attaches cross-platform binaries (Linux/macOS, amd64/arm64) to releases. `install.sh` downloads these assets — no Go toolchain required to install.
 
 ### 3.0
 
