@@ -46,7 +46,7 @@ func chatBaseSkipsTLSVerify(baseURL string, host string) bool {
 	if err != nil || u.Hostname() == "" {
 		return false
 	}
-	return strings.EqualFold(u.Hostname(), host)
+	return host == "*" || strings.EqualFold(u.Hostname(), host)
 }
 
 // stderrCommitSpinner draws a simple ASCII spinner on stderr until stop is closed.
