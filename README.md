@@ -113,6 +113,9 @@ When built with `make dev`, the binary targets `ai.hellyer.test` and accepts sel
 
 ## Changelog
 
+### 3.0.3 — 2026-07-17
+Allow insecure TLS skip for any host in dev mode. This allows for simple testing of the API without requiring https to be configured on the test API.
+
 ### 3.0.2 — 2026-06-07
 
 Bumped all dependencies: `golang.org/x/term`, `actions/checkout`, `actions/setup-go`, `golangci/golangci-lint-action`, `codecov/codecov-action`, `softprops/action-gh-release`.
