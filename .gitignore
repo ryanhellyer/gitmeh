@@ -21,6 +21,7 @@ Thumbs.db
 *.swp
 *.swo
 *~
+.commandcode/
 
 # Local env / secrets
 .env
