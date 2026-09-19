@@ -33,7 +33,7 @@ Because commit messages matter — just not enough to spend brainpower on them.
 
 ### Default API service
 
-If you don't set `GITMEH_API_KEY`, gitmeh uses a **free hosted API** at `https://ai.hellyer.kiwi/v1`, run by the author (Ryan Hellyer). The backend is a Laravel-based API and currently uses **Deepseek V4 Flash**, which produces creditably good commit messages for a tool that started as a throwaway Bash script. If usage costs climb too high I may need to switch to a smaller model, but for now the quality/price ratio is excellent.
+If you don't set `GITMEH_API_KEY`, gitmeh uses a **free hosted API** at `https://ai.hellyer.kiwi/v1`, run by the author (Ryan Hellyer). The backend is a Laravel-based API and currently uses **Ling 3.0 Flash**, which produces creditably good commit messages for a tool that started as a throwaway Bash script. If usage costs climb too high I may need to switch to a smaller model, but for now the quality/price ratio is excellent.
 
 **Your staged diff (code) is sent to this server** and forwarded to whichever model the backend selects. If you're uncomfortable sharing your code with me (Ryan) or with the third-party model provider, **do not use the default service**. Set `GITMEH_API_BASE`, `GITMEH_API_KEY`, and `GITMEH_MODEL` to use your own AI provider instead.
 
