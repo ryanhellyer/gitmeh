@@ -1,5 +1,15 @@
 # gitmeh ¯\_(ツ)_/¯
 
+# todo
+
+1. Make app and API send exact same request (needs syncing between them) and include instructions for Conventional Commits so that bots which don't know 
+it can format them correctly.
+2. Make sure response is formatted correctly, perhaps can check for all the possible COnventional Commits starts to confirm.
+3. Add attribute --auto / -a (automatically accepts commit message
+4. Add attribute -- ??
+
+-----
+
 **AI-powered git commits for people with better things to do.**
 
 Stages all changes, generates a commit message via AI, commits, and pushes — all in one command. Review and edit before it pushes.
