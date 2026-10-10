@@ -7,6 +7,7 @@ it can format them correctly.
 2. Make sure response is formatted correctly, perhaps can check for all the possible COnventional Commits starts to confirm.
 3. Add attribute --auto / -a (automatically accepts commit message
 4. Add attribute -- ??
+5. Handle huge diffs without erroring
 
 -----
 
