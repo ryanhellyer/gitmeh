@@ -124,9 +124,8 @@ When built with `make dev`, the binary targets `ai.hellyer.test` and accepts sel
 
 ## Changelog
 
-### Unreleased
-
-The hosted service now uses `POST /v1/git_meh/completions`, which applies the standard commit-message instructions server-side. The client sends only `model` and `diff` (plus an optional `instructions` override from `GITMEH_PROMPT`); bring-your-own-key mode still uses `/chat/completions`. See [`docs/git_meh_endpoint.md`](docs/git_meh_endpoint.md) for the contract and the exact instructions.
+### 3.1 — 2026-11-17
+Switched default API to use https://ai.hellyer.kiwi/v1/git_meh/completions.
 
 ### 3.0.3 — 2026-07-17
 Allow insecure TLS skip for any host in dev mode. This allows for simple testing of the API without requiring https to be configured on the test API.
