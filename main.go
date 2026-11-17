@@ -71,6 +71,7 @@ func main() {
 		Model:          cfg.Chat.Model,
 		SystemPrompt:   cfg.Chat.Prompt,
 		FallbackModels: cfg.Chat.FallbackModels,
+		GitMehEndpoint: cfg.Chat.GitMehEndpoint,
 	}, diff)
 	if err != nil {
 		if errors.Is(err, context.Canceled) {

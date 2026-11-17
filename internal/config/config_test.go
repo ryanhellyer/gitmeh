@@ -24,8 +24,11 @@ func TestLoad_defaultChatWhenNoUserKey(t *testing.T) {
 	if got.Chat.Model != DefaultHostedModel {
 		t.Fatalf("Model: got %q", got.Chat.Model)
 	}
-	if got.Chat.Prompt == "" {
-		t.Fatal("expected default prompt")
+	if got.Chat.Prompt != "" {
+		t.Fatalf("expected no client-side prompt for the hosted endpoint, got %q", got.Chat.Prompt)
+	}
+	if !got.Chat.GitMehEndpoint {
+		t.Fatal("expected GitMehEndpoint for the hosted service")
 	}
 }
 
@@ -39,6 +42,12 @@ func TestLoad_userAPIKeyOverridesDefaultPublic(t *testing.T) {
 	got := Load()
 	if got.Chat.APIKey != "user-key" {
 		t.Fatalf("APIKey: got %q want user override", got.Chat.APIKey)
+	}
+	if got.Chat.GitMehEndpoint {
+		t.Fatal("expected generic chat endpoint when a user key is set")
+	}
+	if got.Chat.Prompt == "" {
+		t.Fatal("expected default prompt for a generic chat endpoint")
 	}
 }
 
@@ -59,6 +68,9 @@ func TestLoad_customBaseWithDefaultPublicKey(t *testing.T) {
 	}
 	if got.Chat.Model != DefaultHostedModel {
 		t.Fatalf("Model: got %q", got.Chat.Model)
+	}
+	if !got.Chat.GitMehEndpoint {
+		t.Fatal("expected GitMehEndpoint for a hosted/self-hosted gitmeh API base")
 	}
 }
 

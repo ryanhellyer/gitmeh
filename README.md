@@ -2,12 +2,10 @@
 
 # todo
 
-1. Make app and API send exact same request (needs syncing between them) and include instructions for Conventional Commits so that bots which don't know 
-it can format them correctly.
-2. Make sure response is formatted correctly, perhaps can check for all the possible COnventional Commits starts to confirm.
-3. Add attribute --auto / -a (automatically accepts commit message
-4. Add attribute -- ??
-5. Handle huge diffs without erroring
+1. Make sure response is formatted correctly, perhaps can check for all the possible Conventional Commits starts to confirm.
+2. Add attribute --auto / -a (automatically accepts commit message
+3. Add attribute -- ??
+4. Handle huge diffs without erroring
 
 -----
 
@@ -38,13 +36,15 @@ Stages everything (`git add --all`), generates a commit message via AI, commits 
 Because commit messages matter — just not enough to spend brainpower on them.
 
 * **Automated Staging:** Runs `git add --all` so you don't have to think about what changed.
-* **AI-Generated Messages:** Produces a commit message via an OpenAI-compatible chat API, with retry logic, fallback models, and exponential backoff.
+* **AI-Generated Messages:** Produces a commit message via the gitmeh API (`POST /v1/git_meh/completions`) or any OpenAI-compatible chat API, with retry logic, fallback models, and exponential backoff.
 * **Interactive Review:** Review the message before committing, edit it inline, or abort — all at a single prompt.
 * **Automatic Pushing:** Commits and pushes in one step.
 
 ### Default API service
 
-If you don't set `GITMEH_API_KEY`, gitmeh uses a **free hosted API** at `https://ai.hellyer.kiwi/v1`, run by the author (Ryan Hellyer). The backend is a Laravel-based API and currently uses **Ling 3.0 Flash**, which produces creditably good commit messages for a tool that started as a throwaway Bash script. If usage costs climb too high I may need to switch to a smaller model, but for now the quality/price ratio is excellent.
+If you don't set `GITMEH_API_KEY`, gitmeh uses a **free hosted API** at `https://ai.hellyer.kiwi/v1`, run by the author (Ryan Hellyer). The client POSTs the staged diff to `https://ai.hellyer.kiwi/v1/git_meh/completions`, and the server applies the standard commit-message instructions (Conventional Commits format, length, tone) before calling the model. Keeping the instructions server-side means every client — the CLI, a script, any bot — gets the same output contract. The backend is a Laravel-based API and currently uses **Ling 3.0 Flash**, which produces creditably good commit messages for a tool that started as a throwaway Bash script. If usage costs climb too high I may need to switch to a smaller model, but for now the quality/price ratio is excellent.
+
+The endpoint contract and the exact instructions are documented in [`docs/git_meh_endpoint.md`](docs/git_meh_endpoint.md).
 
 **Your staged diff (code) is sent to this server** and forwarded to whichever model the backend selects. If you're uncomfortable sharing your code with me (Ryan) or with the third-party model provider, **do not use the default service**. Set `GITMEH_API_BASE`, `GITMEH_API_KEY`, and `GITMEH_MODEL` to use your own AI provider instead.
 
@@ -59,7 +59,7 @@ export GITMEH_API_BASE='https://opencode.ai/zen/v1'   # or any OpenAI-compatible
 export GITMEH_API_KEY='your_api_key'
 ```
 
-Works with OpenCode Zen, OpenAI, OpenRouter, and any OpenAI-compatible API.
+Works with OpenCode Zen, OpenAI, OpenRouter, and any OpenAI-compatible API. With a user key, gitmeh calls `{GITMEH_API_BASE}/chat/completions` and sends the Conventional Commits prompt as the system message; without a key it calls `{GITMEH_API_BASE}/git_meh/completions` and the server supplies that prompt. A custom `GITMEH_API_BASE` with no key is therefore assumed to be a gitmeh-compatible API (for example the staging server), not a bare OpenAI-compatible host.
 
 All available config options when bringing your own key:
 
@@ -68,7 +68,7 @@ All available config options when bringing your own key:
 | `GITMEH_API_BASE` | API base URL | `https://ai.hellyer.kiwi/v1` (built-in) |
 | `GITMEH_API_KEY` | API key | built-in public key |
 | `GITMEH_MODEL` | Model name | `gitmeh-hosted` or `google/gemma-3-4b-it` |
-| `GITMEH_PROMPT` | System prompt for the model | Conventional Commits prompt |
+| `GITMEH_PROMPT` | Instructions override (sent as `instructions` to the gitmeh endpoint, or as the system prompt to a chat endpoint) | server-side standard prompt, or Conventional Commits prompt with your own key |
 | `GITMEH_FALLBACK_MODELS` | Comma-separated models to try if the primary fails | — |
 | `GITMEH_MAX_DIFF_BYTES` | Per-file diff truncation limit (0 = no limit) | `10000` (10 KB) |
 
@@ -123,6 +123,10 @@ When built with `make dev`, the binary targets `ai.hellyer.test` and accepts sel
 - Diff truncation splits the unified diff at `diff --git` boundaries, preserves all file headers, and allocates the remaining byte budget proportionally by hunk size.
 
 ## Changelog
+
+### Unreleased
+
+The hosted service now uses `POST /v1/git_meh/completions`, which applies the standard commit-message instructions server-side. The client sends only `model` and `diff` (plus an optional `instructions` override from `GITMEH_PROMPT`); bring-your-own-key mode still uses `/chat/completions`. See [`docs/git_meh_endpoint.md`](docs/git_meh_endpoint.md) for the contract and the exact instructions.
 
 ### 3.0.3 — 2026-07-17
 Allow insecure TLS skip for any host in dev mode. This allows for simple testing of the API without requiring https to be configured on the test API.

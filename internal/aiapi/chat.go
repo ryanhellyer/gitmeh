@@ -15,13 +15,27 @@ import (
 // maxRetriesPerModel is the number of attempts per model for transient errors.
 const maxRetriesPerModel = 3
 
-// OpenAIChatParams configures a call to an OpenAI-compatible chat completions API.
+// Endpoint paths appended to [OpenAIChatParams.BaseURL].
+const (
+	chatCompletionsPath   = "/chat/completions"
+	gitMehCompletionsPath = "/git_meh/completions"
+)
+
+// OpenAIChatParams configures a call to gitmeh's commit-message API.
 type OpenAIChatParams struct {
-	BaseURL        string   // e.g. https://openrouter.ai/api/v1 (no trailing slash)
-	APIKey         string
-	Model          string
-	SystemPrompt   string   // instructions; diff is sent in a separate user message
+	BaseURL string // e.g. https://ai.hellyer.kiwi/v1 (no trailing slash)
+	APIKey  string
+	Model   string
+	// SystemPrompt is the instructions sent to a generic chat endpoint. With
+	// [GitMehEndpoint] it is optional: when set it is sent as an instructions
+	// override, otherwise the endpoint applies the standard gitmeh prompt.
+	SystemPrompt   string
 	FallbackModels []string // models to try if primary fails with retryable error
+	// GitMehEndpoint sends the request to gitmeh's own
+	// POST /git_meh/completions endpoint, which supplies the standard
+	// commit-message instructions server-side. When false, a generic
+	// OpenAI-compatible POST /chat/completions endpoint is used.
+	GitMehEndpoint bool
 }
 
 type chatMessage struct {
@@ -34,6 +48,16 @@ type chatRequest struct {
 	Messages    []chatMessage `json:"messages"`
 	Temperature float64       `json:"temperature"`
 	MaxTokens   int           `json:"max_tokens"`
+}
+
+// gitMehRequest is the body sent to the hosted /git_meh/completions endpoint.
+// The endpoint owns the system instructions, sampling parameters and response
+// formatting, so the client only supplies the diff (plus an optional model and
+// instructions override).
+type gitMehRequest struct {
+	Model        string `json:"model,omitempty"`
+	Diff         string `json:"diff"`
+	Instructions string `json:"instructions,omitempty"`
 }
 
 type chatResponse struct {
@@ -50,9 +74,13 @@ type apiErrorBody struct {
 	} `json:"error"`
 }
 
-// CommitMessageOpenAIChat POSTs to {BaseURL}/chat/completions with the unified diff
-// in the user message and SystemPrompt as the system message. Returns assistant
-// text trimmed of outer whitespace.
+// CommitMessageOpenAIChat requests a commit message for diff.
+//
+// With [OpenAIChatParams.GitMehEndpoint] it POSTs {"model","diff"} to
+// {BaseURL}/git_meh/completions, and the endpoint supplies the standard
+// gitmeh instructions. Otherwise it POSTs to {BaseURL}/chat/completions with
+// SystemPrompt as the system message and the unified diff in the user message.
+// Returns assistant text trimmed of outer whitespace.
 //
 // If FallbackModels are provided and the primary model fails with a retryable
 // error (network errors, 5xx, 429, context-length exceeded), fallback models
@@ -76,16 +104,18 @@ func CommitMessageOpenAIChat(ctx context.Context, client *http.Client, p OpenAIC
 		return "", fmt.Errorf("model is empty")
 	}
 	sys := strings.TrimSpace(p.SystemPrompt)
-	if sys == "" {
+	if sys == "" && !p.GitMehEndpoint {
 		return "", fmt.Errorf("system prompt is empty")
 	}
+	p.BaseURL = base
+	p.SystemPrompt = sys
 
 	models := buildModelList(model, p.FallbackModels)
 
-		return withGeneratingCommitSpinner(func() (string, error) {
+	return withGeneratingCommitSpinner(func() (string, error) {
 		var lastErr error
 		for i, m := range models {
-			result, err := tryModelWithRetry(ctx, client, base, key, m, sys, diff)
+			result, err := tryModelWithRetry(ctx, client, p, m, diff)
 			if err == nil {
 				return result, nil
 			}
@@ -113,7 +143,7 @@ func buildModelList(primary string, fallbacks []string) []string {
 	return models
 }
 
-func tryModelWithRetry(ctx context.Context, client *http.Client, baseURL, apiKey, model, systemPrompt, diff string) (string, error) {
+func tryModelWithRetry(ctx context.Context, client *http.Client, p OpenAIChatParams, model, diff string) (string, error) {
 	var lastErr error
 	for attempt := 0; attempt < maxRetriesPerModel; attempt++ {
 		if attempt > 0 {
@@ -126,7 +156,7 @@ func tryModelWithRetry(ctx context.Context, client *http.Client, baseURL, apiKey
 			case <-timer.C:
 			}
 		}
-		result, err := doChatRequest(ctx, client, baseURL, apiKey, model, systemPrompt, diff)
+		result, err := doChatRequest(ctx, client, p, model, diff)
 		if err == nil {
 			return result, nil
 		}
@@ -149,30 +179,45 @@ func tryModelWithRetry(ctx context.Context, client *http.Client, baseURL, apiKey
 	return "", lastErr
 }
 
-func doChatRequest(ctx context.Context, client *http.Client, baseURL, apiKey, model, systemPrompt, diff string) (string, error) {
-	body := chatRequest{
-		Model: model,
-		Messages: []chatMessage{
-			{Role: "system", Content: systemPrompt},
-			{Role: "user", Content: "Unified diff:\n" + diff},
-		},
-		Temperature: 0.3,
-		MaxTokens:   4096,
+func doChatRequest(ctx context.Context, client *http.Client, p OpenAIChatParams, model, diff string) (string, error) {
+	endpoint := p.BaseURL + chatCompletionsPath
+	var payload any
+
+	if p.GitMehEndpoint {
+		endpoint = p.BaseURL + gitMehCompletionsPath
+		body := gitMehRequest{
+			Model: model,
+			Diff:  "Unified diff:\n" + diff,
+		}
+		if p.SystemPrompt != "" {
+			body.Instructions = p.SystemPrompt
+		}
+		payload = body
+	} else {
+		payload = chatRequest{
+			Model: model,
+			Messages: []chatMessage{
+				{Role: "system", Content: p.SystemPrompt},
+				{Role: "user", Content: "Unified diff:\n" + diff},
+			},
+			Temperature: 0.3,
+			MaxTokens:   4096,
+		}
 	}
-	rawBody, err := json.Marshal(body)
+
+	rawBody, err := json.Marshal(payload)
 	if err != nil {
 		return "", err
 	}
 
-	endpoint := baseURL + "/chat/completions"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(rawBody))
 	if err != nil {
 		return "", err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Authorization", "Bearer "+apiKey)
-	if strings.Contains(strings.ToLower(baseURL), "openrouter.ai") {
+	req.Header.Set("Authorization", "Bearer "+p.APIKey)
+	if strings.Contains(strings.ToLower(p.BaseURL), "openrouter.ai") {
 		req.Header.Set("HTTP-Referer", "https://github.com/ryanhellyer/gitmeh")
 		req.Header.Set("X-Title", "gitmeh")
 	}

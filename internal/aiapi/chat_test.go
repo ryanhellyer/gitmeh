@@ -93,6 +93,88 @@ func TestCommitMessageOpenAIChat_success(t *testing.T) {
 	}
 }
 
+func TestCommitMessageOpenAIChat_gitMehEndpoint(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/git_meh/completions" {
+			t.Errorf("path: %s", r.URL.Path)
+		}
+		if r.Method != http.MethodPost {
+			t.Errorf("method: %s", r.Method)
+		}
+		if r.Header.Get("Authorization") != "Bearer secret" {
+			t.Errorf("Authorization: %q", r.Header.Get("Authorization"))
+		}
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var req gitMehRequest
+		if err := json.Unmarshal(body, &req); err != nil {
+			t.Fatal(err)
+		}
+		if req.Model != "gitmeh-hosted" {
+			t.Errorf("model: %q", req.Model)
+		}
+		if req.Diff != "Unified diff:\ndiff-here" {
+			t.Errorf("diff: %q", req.Diff)
+		}
+		if req.Instructions != "" {
+			t.Errorf("instructions should be omitted, got %q", req.Instructions)
+		}
+		if strings.Contains(string(body), `"messages"`) {
+			t.Errorf("chat fields leaked into git-meh request: %s", body)
+		}
+
+		_, _ = w.Write([]byte(`{"choices":[{"message":{"role":"assistant","content":"  feat(api): add git_meh endpoint  \n"}}]}`))
+	}))
+	defer srv.Close()
+
+	got, err := CommitMessageOpenAIChat(context.Background(), srv.Client(), OpenAIChatParams{
+		BaseURL:        srv.URL + "/v1",
+		APIKey:         "secret",
+		Model:          "gitmeh-hosted",
+		GitMehEndpoint: true,
+	}, "diff-here")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != "feat(api): add git_meh endpoint" {
+		t.Fatalf("got %q want trimmed", got)
+	}
+}
+
+func TestCommitMessageOpenAIChat_gitMehInstructionsOverride(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req gitMehRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Fatal(err)
+		}
+		if req.Instructions != "be terse" {
+			t.Errorf("instructions: %q", req.Instructions)
+		}
+		_, _ = w.Write([]byte(`{"choices":[{"message":{"role":"assistant","content":"chore: override"}}]}`))
+	}))
+	defer srv.Close()
+
+	got, err := CommitMessageOpenAIChat(context.Background(), srv.Client(), OpenAIChatParams{
+		BaseURL:        srv.URL,
+		APIKey:         "secret",
+		Model:          "m",
+		SystemPrompt:   "  be terse  ",
+		GitMehEndpoint: true,
+	}, "diff")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != "chore: override" {
+		t.Fatalf("got %q", got)
+	}
+}
+
 func TestCommitMessageOpenAIChat_retryOnTransientError(t *testing.T) {
 	t.Parallel()
 

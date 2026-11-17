@@ -13,24 +13,32 @@ OPTIONS
   -v               Print the program name and version, then exit.
 
 ENVIRONMENT
-  OpenAI-compatible chat (default)
-    POST JSON to /v1/chat/completions. With no API key env vars, uses the
-    compiled-in hosted base URL, bearer token, and model (see internal/config).
+  Hosted service (default, no API key)
+    POST JSON to {GITMEH_API_BASE}/git_meh/completions with {"model","diff"}.
+    The endpoint supplies the standard Conventional Commits instructions, so
+    the client does not send a prompt unless you override it.
 
-    GITMEH_API_BASE      Optional API root, no trailing slash (overrides the
-                         default hosted base when no user API key is set).
-    GITMEH_MODEL         Optional model id. OPENROUTER_MODEL is used if
-                         GITMEH_MODEL is unset (overrides default hosted model
-                         when no user API key is set).
-    GITMEH_PROMPT        Optional system instructions; unified diff is always sent
-                         in a separate user message after your text.
+    GITMEH_API_BASE      Optional API root, no trailing slash (default:
+                         https://ai.hellyer.kiwi/v1). Point it at a
+                         gitmeh-compatible API, e.g. a staging server.
+    GITMEH_MODEL         Optional model id (default: gitmeh-hosted).
+    GITMEH_PROMPT        Optional instructions override, sent as "instructions".
+                         When omitted, the server's standard prompt is used.
 
   User API key (OpenAI-compatible host, e.g. OpenRouter)
-    GITMEH_API_KEY       Bearer token for /v1/chat/completions.
+    POST JSON to {GITMEH_API_BASE}/chat/completions with a system message
+    (the prompt) and the diff in a separate user message.
+
+    GITMEH_API_KEY       Bearer token.
     GITMEH_API_BASE      Optional API root (default: https://openrouter.ai/api/v1).
-    GITMEH_MODEL         Optional model id (default with user key: google/gemma-3-4b-it).
+    GITMEH_MODEL         Optional model id (default: google/gemma-3-4b-it).
+    GITMEH_PROMPT        Optional system instructions.
     OPENROUTER_API_KEY   Legacy alias for GITMEH_API_KEY (from earlier versions).
     OPENROUTER_MODEL     Legacy alias for GITMEH_MODEL (from earlier versions).
+
+  A user key takes precedence: setting GITMEH_API_KEY or OPENROUTER_API_KEY
+  switches to the chat completions endpoint. See docs/git_meh_endpoint.md for
+  the hosted endpoint contract and instructions.
 
 SEE ALSO
   git-add(1), git-commit(1), git-push(1)

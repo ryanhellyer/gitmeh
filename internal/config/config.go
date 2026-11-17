@@ -42,6 +42,10 @@ type OpenAIChat struct {
 	Prompt         string
 	FallbackModels []string
 	MaxDiffBytes   int // max staged diff size before refusing; 0 = no limit
+	// GitMehEndpoint is true for the built-in hosted service, which owns the
+	// standard commit-message instructions. It is false when the user supplies
+	// their own API key, in which case Prompt is sent as the system message.
+	GitMehEndpoint bool
 }
 
 // App is resolved configuration from the environment.
@@ -56,14 +60,16 @@ const defaultCommitPrompt = `Write a Git commit message (Conventional Commits fo
 
 // Load reads environment variables.
 //
-// With GITMEH_API_KEY set: GITMEH_API_BASE defaults to OpenRouter, model to
-// [defaultModel] unless GITMEH_MODEL is set.
+// With GITMEH_API_KEY set: the request goes to a generic OpenAI-compatible
+// POST {GITMEH_API_BASE}/chat/completions (default OpenRouter), the model
+// defaults to [defaultModel], and Prompt is sent as the system message.
 //
-// With no key set: [HostedChatBaseURL], [DefaultPublicAPIKey], and
-// [DefaultHostedModel] unless GITMEH_API_BASE and/or GITMEH_MODEL override the
-// URL or model.
-//
-// GITMEH_PROMPT optionally overrides the system instructions.
+// With no key set: the request goes to gitmeh's own
+// POST {base}/git_meh/completions ([HostedChatBaseURL]), which supplies the
+// standard commit-message instructions server-side. [DefaultPublicAPIKey] and
+// [DefaultHostedModel] are used unless GITMEH_API_BASE and/or GITMEH_MODEL
+// override the URL or model. GITMEH_PROMPT, when set, is sent as an
+// instructions override.
 //
 // OPENROUTER_API_KEY and OPENROUTER_MODEL are also accepted as legacy aliases
 // for GITMEH_API_KEY and GITMEH_MODEL (from earlier versions that only
@@ -74,8 +80,10 @@ func Load() App {
 		userKey = strings.TrimSpace(os.Getenv("OPENROUTER_API_KEY")) // legacy alias
 	}
 
+	// The hosted endpoint carries the standard instructions, so a default
+	// prompt is only needed when talking to a generic chat endpoint.
 	prompt := strings.TrimSpace(os.Getenv("GITMEH_PROMPT"))
-	if prompt == "" {
+	if prompt == "" && userKey != "" {
 		prompt = defaultCommitPrompt
 	}
 
@@ -132,6 +140,7 @@ func Load() App {
 			Prompt:         prompt,
 			FallbackModels: fallbackModels,
 			MaxDiffBytes:   maxDiff,
+			GitMehEndpoint: userKey == "",
 		},
 	}
 }
